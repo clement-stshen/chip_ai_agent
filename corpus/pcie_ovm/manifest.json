@@ -1,6 +1,6 @@
 {
   "source": "deepseek_html_20261016_85f843.html",
-  "title": "PCIe OVM 完整 SFT 语料生成器 (Synopsys PCIe OVM VIP)",
+  "title": "PCIe OVM 完整 SFT 语料生成器 (PCIe OVM VIP)",
   "records": 90,
   "files": {
     "pcie_ovm_alpaca.json": {

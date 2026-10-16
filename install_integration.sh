@@ -4,10 +4,19 @@
 #
 # Usage:
 #   bash install_integration.sh          # methodology skills only (13)
-#   bash install_integration.sh --all    # + all 123 Synopsys/Verdi skills
+#   bash install_integration.sh --all    # + all site skills
 set -euo pipefail
 
-AGENT="${CHIP_AGENT_HOME:-/tools/lsf_api/chip_ai_agent}"
+AGENT="${CHIP_AGENT_HOME:-$(cd "$(dirname "$0")" && pwd)}"
+# Python runtime: prefer an explicit override, then a sibling .venv (carries
+# numpy + MCP SDK for full corpus support), then system python3.
+if [ -n "${CHIP_AGENT_PYTHON:-}" ]; then
+    PY="$CHIP_AGENT_PYTHON"
+elif [ -x "$AGENT/../.venv/bin/python" ]; then
+    PY="$AGENT/../.venv/bin/python"
+else
+    PY="python3"
+fi
 SKILLS_SRC=$AGENT/skills
 INSTALL_ALL=0
 [ "${1:-}" = "--all" ] && INSTALL_ALL=1
@@ -22,24 +31,27 @@ echo "== 1. Claude Code: register MCP server (user scope) =="
 if claude mcp list 2>/dev/null | grep -q "chip-agent"; then
     echo "   already registered"
 else
-    claude mcp add chip-agent -s user -- python3 "$AGENT/mcp_server.py"
+    claude mcp add chip-agent -s user -- "$PY" "$AGENT/mcp_server.py"
 fi
 
 echo "== 2. Codex: register MCP server (~/.codex/config.toml) =="
-python3 - <<'PY'
+AGENT="$AGENT" PY="$PY" python3 - <<'PY'
+import os, re
 from pathlib import Path
 cfg = Path.home()/".codex/config.toml"
 s = cfg.read_text() if cfg.exists() else ""
-if "mcp_servers.chip_agent" not in s:
-    cfg.write_text(s.rstrip() + """
-
-[mcp_servers.chip_agent]
-command = "python3"
-args = ["/tools/lsf_api/chip_ai_agent/mcp_server.py"]
-""")
-    print("   added")
+block = '[mcp_servers.chip_agent]\ncommand = "%s"\nargs = ["%s"]\n' % (
+    os.environ["PY"], os.environ["AGENT"] + "/mcp_server.py")
+pat = re.compile(r'\[mcp_servers\.chip_agent\]\n(?:.+\n)*?(?=\[|\Z)')
+if "mcp_servers.chip_agent" in s:
+    if s[pat.search(s).start():pat.search(s).end()] == block:
+        print("   already present")
+    else:
+        cfg.write_text(pat.sub(block, s, count=1))
+        print("   updated (python/args refreshed)")
 else:
-    print("   already present")
+    cfg.write_text(s.rstrip() + "\n\n" + block)
+    print("   added")
 PY
 
 echo "== 3. Install skills to Claude Code + Codex skill dirs =="

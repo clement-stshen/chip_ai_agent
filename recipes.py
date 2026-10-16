@@ -321,7 +321,7 @@ RECIPES: dict[str, dict] = {
             {"skill": "run_simulation", "why": "VCS 编译+仿真, 解析 UVM 报告 (PASS/FAIL/error/fatal)"},
         ],
     },
-    # Synopsys verif-agent-mcp (remote MCP server: /opt/verif-agent-mcp,
+    # verif-agent-mcp (remote MCP server at $CHIP_AGENT_VERIF_AGENT_BIN,
     # 4 tools — run_vcs_simulation / diagnose_sim_log / analyze_coverage /
     # generate_uvm_env). Steps execute via the MCP adapter; degrade to
     # "no MCP server configured" without it, and the plan reports the

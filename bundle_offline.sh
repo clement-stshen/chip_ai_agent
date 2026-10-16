@@ -4,7 +4,7 @@
 #   bash chip_ai_agent/install_offline.sh && bash chip_ai_agent/install_integration.sh
 set -euo pipefail
 
-OUT="${1:-/tools/lsf_api/chip_ai_agent_offline_bundle.tar.gz}"
+OUT="${1:-${CHIP_AGENT_BUNDLE_OUT:-$PWD/chip_ai_agent_offline_bundle.tar.gz}}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -12,8 +12,8 @@ trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/chip_ai_agent"
 # ① 代码与随包数据
 cp -r "$ROOT/chip_ai_agent" "$TMP/"
-# ② 依赖 wheels
-cp -r "$ROOT/wheelhouse" "$TMP/"
+# ② 依赖 wheels (随包位于 chip_ai_agent/wheelhouse)
+cp -r "$ROOT/chip_ai_agent/wheelhouse" "$TMP/"
 # ③ 核心模板工程
 cp -r "$ROOT/uvm_tb" "$TMP/"
 # ④ 站点数据 (可选, 缺失时对应工具优雅降级)

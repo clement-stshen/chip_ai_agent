@@ -3,8 +3,8 @@
 Environment model (matches this site):
   - Real EDA binaries may live on compute nodes, not the analysis host.
   - The authoritative source for tool homes is the environment modulefile
-    (/usr/share/Modules/modulefiles/synopsys, /tools/Synopsys/scl/modulefile).
-  - The NPI kit (/tools/Synopsys/temp/NPI) provides pynpi Python bindings;
+    ($CHIP_AGENT_MODULEFILES).
+  - The NPI kit ($CHIP_AGENT_NPI_ROOT) provides pynpi Python bindings;
     waveform DB access additionally requires a valid $VERDI_HOME.
 
 Every tool call degrades gracefully: when a binary is missing the result
@@ -27,7 +27,7 @@ from .site_paths import (COMMON_ROOTS, MODULEFILES, NPI_ROOT,
 
 TEMPLATE_ROOT = TEMPLATE_TB
 
-# -- UVM reference library (Accellera, /tools/Synopsys/temp/uvm) -------------
+# -- UVM reference library (Accellera, $CHIP_AGENT_UVM_ROOT) ----------------
 # 6 releases ship unpacked next to their tarballs; the 1.x tarballs live in
 # the parent dir, the 1800.2 ones inside uvm/. The project standard is the
 # IEEE 1800.2-2020.3.1 kit. uvm-core-2020.3.1 is an identical twin (the
@@ -234,7 +234,7 @@ def build_vcs_command(project_root: str | Path,
     extra = [a for a in (extra_args or []) if a]
     return [
         vcs_binary, "-full64", "-sverilog", "-timescale=1ns/1ps", "-debug_access+all",
-        f"+incdir+{uvm_home}/src", f"-f{filelist}", "-l", "comp.log", "-o", "simv",
+        f"+incdir+{uvm_home}/src", "-f", str(filelist), "-l", "comp.log", "-o", "simv",
         *extra,
     ]
 

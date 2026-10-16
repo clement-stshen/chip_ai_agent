@@ -4,7 +4,7 @@ Run standalone:
     .venv/bin/python -m chip_ai_agent.fastmcp_pcie_server
 The server speaks MCP over stdio and exposes:
   * search_pcie_guide(query, kind?, top_k?)  - vector retrieval over the
-    Synopsys PCIe OVM User Guide structured units
+    PCIe OVM User Guide structured units
   * generate_pcie_config(device, spec_ver?, link_width?, speed?) -
     emits a parameterized OVM configuration class (stage 6 consumer tool),
     grounded with the top retrieved guide sections
@@ -36,7 +36,7 @@ _SPEED = {
 @mcp.tool()
 def search_pcie_guide(query: str, kind: str | None = None,
                       top_k: int = 5) -> dict:
-    """Search the Synopsys PCIe OVM User Guide corpus (kind: steps/code/prose)."""
+    """Search the PCIe OVM User Guide corpus (kind: steps/code/prose)."""
     return pcie_index.search(query, top_k=max(1, min(10, top_k)), kind=kind)
 
 

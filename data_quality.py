@@ -11,7 +11,7 @@ Dirty-data categories handled:
   runs DB (SQLite):
     - empty runs (0 steps), orphan steps, stale empty DBs
   skills:
-    - encrypted blobs (unparseable), SKILL.md without name
+    - unparseable blobs, SKILL.md without name
   filesystem:
     - stale generated testbench dirs in /tmp
 

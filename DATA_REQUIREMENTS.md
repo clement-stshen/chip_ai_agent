@@ -15,7 +15,7 @@
 | 历史 debug 意图 → 成功 recipe 的配对记录 | JSONL (`intent, recipe, steps, outcome`) | 微调 trigger 词 / LLM few-shot | ★★★ |
 | 典型调试工单 (JIRA/ticket 文本) | 纯文本 | 扩充 `match_intent` 触发词与 LLMPlanner 提示 | ★★★ |
 | DVCon/论文方法论 (如本次 2025 分析) | Markdown | 沉淀为新 recipe / SKILL.md | ★★ |
-| 真实 MCP server 的 tools/list 输出 | JSON | 校正 recipes 里的技能名(当前 92 加密技能无法验证) | ★★★ |
+| 真实 MCP server 的 tools/list 输出 | JSON | 校正 recipes 里的技能名(当前 92 项技能尚缺真实 server 实测) | ★★★ |
 
 ### B. 提升 Skills (技能库)
 

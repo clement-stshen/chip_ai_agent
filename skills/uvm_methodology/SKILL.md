@@ -5,7 +5,7 @@ description: >
   与 drain time / config_db 配置 / sequence-sequencer-driver 握手 / TLM 端口 /
   factory 与 override / reporting 与 verbosity / 寄存器层 / 编译引入约定 /
   版本差异 (1.2 ↔ 1800.2-2020)。引用本地 Accellera 参考库
-  /tools/Synopsys/temp/uvm 与标准模板工程 /tools/lsf_api/uvm_tb,
+  $CHIP_AGENT_UVM_ROOT 与标准模板工程 $CHIP_AGENT_TEMPLATE_TB,
   与 generate_testbench / check_uvm_compliance / run_simulation 技能衔接。
 version: 1.0.0
 ---
@@ -20,7 +20,7 @@ version: 1.0.0
 
 ## 本地参考库 (版本矩阵)
 
-`/tools/Synopsys/temp/uvm/` 含 6 套完整 Accellera 参考实现 + 4 个 tarball:
+`$CHIP_AGENT_UVM_ROOT/` 含 6 套完整 Accellera 参考实现 + 4 个 tarball:
 
 | 版本 | 发布 | src/ 布局 | 说明 |
 |---|---|---|---|
@@ -138,8 +138,8 @@ uvm_void
 ## 编译引入 (VCS 约定, 与 run_vcs.sh 一致)
 
 ```bash
-UVM_HOME=${UVM_HOME:-/tools/Synopsys/temp/uvm/1800.2-2020.3.1}
-# 无本地副本时: tar -xzf /tools/Synopsys/temp/uvm/UVM-1800.2-2020.3.1.tar.gz -C uvm_lib
+UVM_HOME=${UVM_HOME:-$CHIP_AGENT_UVM_ROOT/1800.2-2020.3.1}
+# 无本地副本时: tar -xzf $CHIP_AGENT_UVM_ROOT/UVM-1800.2-2020.3.1.tar.gz -C uvm_lib
 vcs -full64 -sverilog -timescale=1ns/1ps -debug_access+all \
     +incdir+"$UVM_HOME/src" -f sim/filelist.f -l comp.log -o simv
 ./simv +UVM_TESTNAME=fifo_smoke_test +UVM_VERBOSITY=UVM_LOW -l sim.log
@@ -169,7 +169,7 @@ vcs -full64 -sverilog -timescale=1ns/1ps -debug_access+all \
 实验 polling API (`UVM_ENABLE_EXPERIMENTAL_POLLING_API`)。已知 LRM 偏差见
 `DEVIATIONS.md` (3 项)。
 
-## Method — 标准验证环境构建 (10 步, 与模板 /tools/lsf_api/uvm_tb 对齐)
+## Method — 标准验证环境构建 (10 步, 与模板 $CHIP_AGENT_TEMPLATE_TB 对齐)
 
 1. **interface**: clocking block + modport + 协议 SVA 放 interface (不放 DUT)
 2. **transaction**: uvm_sequence_item + `uvm_object_utils_begin/end` 字段宏 + 约束
@@ -184,14 +184,14 @@ vcs -full64 -sverilog -timescale=1ns/1ps -debug_access+all \
 10. **tb_top**: 时钟/复位 + config_db::set vif + `run_test()`
 
 生成后**必须**立即跑 `check_uvm_compliance` (13 类静态规则), 再 `run_simulation`。
-一键: `cd /tools/lsf_api/uvm_tb/sim && ./run_vcs.sh fifo_smoke_test`。
+一键: `cd $CHIP_AGENT_TEMPLATE_TB/sim && ./run_vcs.sh fifo_smoke_test`。
 
 ## Direct Reuse (直接复用)
 
 ```bash
 # 从模板生成新环境 (agent 技能 generate_testbench, 或手工复制)
-cp -r /tools/lsf_api/uvm_tb /path/to/my_tb
-python3 /tools/lsf_api/chip_ai_agent/skills/check_uvm_compliance/check_uvm_compliance.py /path/to/my_tb
+cp -r $CHIP_AGENT_TEMPLATE_TB /path/to/my_tb
+python3 $CHIP_AGENT_HOME/skills/check_uvm_compliance/check_uvm_compliance.py /path/to/my_tb
 # 库引用: UVM_HOME 环境变量优先, 否则自动解压 uvm_tb/uvm_lib/1800.2-2020.3.1
 ```
 

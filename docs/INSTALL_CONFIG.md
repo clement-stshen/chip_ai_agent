@@ -18,7 +18,7 @@ bash chip_ai_agent/install_integration.sh
 
 ## 2. 离线安装(全部依赖已本地化)
 
-依赖 wheel 已下载至 `/tools/lsf_api/wheelhouse/`(**38 wheels**:
+依赖 wheel 已下载至 `chip_ai_agent/wheelhouse/`(**47 wheels**:
 mcp 2.3.0 + mcp-types + numpy + pypdf + pytest + beautifulsoup4 + fonttools
 及全部传递依赖;scratch venv `--no-index` 实测通过):
 
@@ -31,7 +31,9 @@ mcp 2.3.0 + mcp-types + numpy + pypdf + pytest + beautifulsoup4 + fonttools
 > 优雅降级, 核心验证流 (plan/generate/check/memory) 零外部数据可运行。
 
 ```bash
-python3 -m pip install --no-index --find-links /tools/lsf_api/wheelhouse \
+# 环境变量: CHIP_AGENT_WHEELHOUSE(默认 chip_ai_agent/wheelhouse)、
+# CHIP_AGENT_PYTHON(默认站点值见 site_paths.py)
+"$CHIP_AGENT_PYTHON" -m pip install --no-index --find-links "$CHIP_AGENT_WHEELHOUSE" \
     "mcp==2.3.0" "mcp-types==2.3.0" numpy pypdf pytest beautifulsoup4 fonttools
 # 或: bash chip_ai_agent/install_offline.sh
 
@@ -46,18 +48,20 @@ UART 范例树 — 见第 4 节变量表。
 
 ### Claude Code
 ```bash
-claude mcp add chip-agent -s user -- python3 /tools/lsf_api/chip_ai_agent/mcp_server.py
+# 推荐用 venv python(带 numpy/MCP SDK, 语料检索完整);
+# 或: bash chip_ai_agent/install_integration.sh 自动完成
+claude mcp add chip-agent -s user -- "$CHIP_AGENT_PYTHON" "$CHIP_AGENT_HOME/mcp_server.py"
 claude mcp list     # ✔ Connected
 ```
-项目级(随工程分发): `/tools/lsf_api/.mcp.json`(含 chip-agent + verif-agent
+项目级(随工程分发): `${CHIP_AGENT_HOME}/../.mcp.json`(含 chip-agent + verif-agent
 两个 server 及 env)。
 
 ### Codex
 `~/.codex/config.toml`:
 ```toml
 [mcp_servers.chip_agent]
-command = "python3"
-args = ["/tools/lsf_api/chip_ai_agent/mcp_server.py"]
+command = "<CHIP_AGENT_PYTHON>"
+args = ["<CHIP_AGENT_HOME>/mcp_server.py"]
 ```
 
 ### 团队共享(HTTP)
@@ -72,10 +76,10 @@ claude mcp add chip-agent-http --transport http http://127.0.0.1:8000/mcp
 ### 4.1 站点路径(全部 env 可覆盖,默认保持现址)
 | 变量 | 默认值 |
 |---|---|
-| `CHIP_AGENT_TEMPLATE_TB` | /tools/lsf_api/uvm_tb |
+| `CHIP_AGENT_TEMPLATE_TB` | UVM 模板工程 (默认站点值) |
 | `CHIP_AGENT_MODULEFILES` | :分隔 modulefile 路径 |
 | `CHIP_AGENT_EDA_ROOTS` | :分隔 EDA 厂商根 |
-| `CHIP_AGENT_NPI_ROOT` | /tools/Synopsys/temp/NPI |
+| `CHIP_AGENT_NPI_ROOT` | NPI kit (默认站点值) |
 | `CHIP_AGENT_UVM_ROOT` / `_TGZ_ROOT` | UVM 库 / tarball 父目录 |
 | `CHIP_AGENT_UG_ROOT` / `_DVCON_ROOT` | 语料根 |
 | `CHIP_AGENT_EXAMPLE_UART` | UART 范例树 |

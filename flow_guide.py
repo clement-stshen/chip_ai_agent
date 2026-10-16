@@ -335,8 +335,8 @@ def route_intent(intent: str) -> dict:
 
 
 # cross-tool linkage: per-phase recommendations into the auxiliary
-# retrieval tools integrated from /tools/Synopsys/temp (UG vector docs,
-# NPI C-API index, golden example library).
+# retrieval tools integrated from the env-configured corpus roots
+# (UG vector docs, NPI C-API index, golden example library).
 _ASSISTANT_TOOLS: dict[str, list[str]] = {
     "default": ["chip_agent_skills", "chip_ug_search"],
     "front_end_rtl": [

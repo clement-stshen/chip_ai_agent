@@ -1,6 +1,6 @@
 """Local pynpi-backed execution layer for the Verdi waveform skill surface.
 
-Deep-kit analysis facts (/tools/Synopsys/temp/NPI):
+Deep-kit analysis facts ($CHIP_AGENT_NPI_ROOT):
   - pynpi (SWIG 4.0.2) ships compiled .so modules whose RUNPATH is
     $ORIGIN/.., so ONLY PYTHONPATH=NPI/python is needed — no
     LD_LIBRARY_PATH. Verified importable on the venv python 3.12.

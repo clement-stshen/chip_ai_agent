@@ -1,6 +1,6 @@
 # chip_ai_agent 功能说明书
 
-> 版本 2.0.0 · 2026-10 · 配套文档: [INSTALL_CONFIG.md](INSTALL_CONFIG.md)
+> 版本 2.1.0 · 2026-10-16 · 配套文档: [INSTALL_CONFIG.md](INSTALL_CONFIG.md)
 
 ## 1. 系统定位
 
@@ -38,7 +38,7 @@ legacy 回退),支持 Claude Code / Codex / 任意 MCP 客户端。
 ### 3.2 验证环境
 | 工具 | 功能 |
 |---|---|
-| `chip_generate_testbench` | UVM 1800.2-2020.3.1 模板生成(12 文件) |
+| `chip_generate_testbench` | UVM 1800.2-2020.3.1 模板生成(12 TB 文件 + sim/ 运行脚本, 生成后强制合规检查) |
 | `chip_check_uvm_compliance` | IEEE 1800.2-2020 13 类静态合规门禁 |
 | `chip_run_simulation` | VCS 编译+仿真+UVM 报告解析(无 VCS 优雅降级+ready_command) |
 | `chip_open_waveform` | Verdi 打开 FSDB(降级给 ready 命令) |
@@ -120,5 +120,6 @@ pynpi-backed 本地实现(真实 Verdi 激活,否则统一降级契约):
 
 ## 10. 测试保障
 
-218 项回归(协议双模式、学习闭环、语料精准性、NPI 降级、UVM 解析、
-安全加固 shell-free、路径配置、并发)。
+219 项回归(协议双模式、学习闭环、语料精准性、NPI 降级、UVM 解析、
+安全加固 shell-free、路径配置、并发), 离线 scratch venv (wheelhouse
+--no-index 47 wheels) 实测全绿。

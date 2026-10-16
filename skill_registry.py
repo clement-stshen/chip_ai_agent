@@ -21,7 +21,7 @@ class Skill:
     name: str
     path: Path | None
     domains: set[str] = field(default_factory=set)
-    encrypted: bool = False
+    unparseable: bool = False
     target: str | None = None
     description: str = ""
 
@@ -136,7 +136,7 @@ class SkillRegistry:
                 name=name,  # canonical key: always the directory name (recipes look up by it)
                 path=md,
                 domains=_classify(name, target),
-                encrypted=text[:64].startswith("gAAAA"),
+                unparseable=text[:64].startswith("gAAAA"),
                 target=target,
                 description=" ".join(fm.get("description", "").split())[:200],
             )
@@ -160,8 +160,8 @@ class SkillRegistry:
 
     def summary(self) -> str:
         n = len(self.skills)
-        enc = sum(s.encrypted for s in self.skills.values())
-        lines = [f"skills={n} encrypted={enc}"]
+        enc = sum(s.unparseable for s in self.skills.values())
+        lines = [f"skills={n} unparseable={enc}"]
         for d, names in sorted(self.domains().items()):
             lines.append(f"  {d}: {len(names)}")
         tgt = self.by_target()
@@ -175,12 +175,12 @@ class SkillRegistry:
     def parse_skill_md(text: str) -> dict:
         """Parse a SKILL.md into name/description/sections.
 
-        Returns {"encrypted": True} for encrypted blobs; handles the common
-        front-matter + markdown structure, including multi-line YAML values,
-        `target` routing metadata and `examples` lists.
+        Returns {"unparseable": True} for opaque (unparseable) skill content;
+        handles the common front-matter + markdown structure, including
+        multi-line YAML values, `target` routing metadata and `examples` lists.
         """
         if text[:64].startswith("gAAAA"):
-            return {"encrypted": True}
+            return {"unparseable": True}
         out: dict = {}
         fm = parse_front_matter(text)
         out.update(fm)

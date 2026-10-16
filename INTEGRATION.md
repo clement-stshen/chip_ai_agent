@@ -36,17 +36,17 @@ taxonomy 审计豁免; 中间 gate 杂名不会阻塞 signoff 但会在 reason �
 ## 安装 SDK (开启 SDK 模式)
 
 ```bash
-bash /tools/lsf_api/chip_ai_agent/install_sdk.sh          # 本地源码树安装 (默认)
-bash /tools/lsf_api/chip_ai_agent/install_sdk.sh --pypi   # 或 PyPI 发布版 mcp==2.3.0
+bash "$CHIP_AGENT_HOME"/install_sdk.sh          # 本地源码树安装 (默认)
+bash "$CHIP_AGENT_HOME"/install_sdk.sh --pypi   # 或 PyPI 发布版 mcp==2.3.0
 ```
 
-安装到共享 venv (`/tools/lsf_api/.venv`,即 PATH 上的 `python3`)。不安装也
+安装到共享 venv (`$CHIP_AGENT_PYTHON`, 默认站点值见 site_paths.py)。不安装也
 可用 — 服务端自动退回 legacy 模式,行为与之前完全一致。
 
 ## 快速安装 (一键, 幂等)
 
 ```bash
-bash /tools/lsf_api/chip_ai_agent/install_integration.sh
+bash "$CHIP_AGENT_HOME"/install_integration.sh
 ```
 
 自动完成:
@@ -125,7 +125,7 @@ MCP progress 通知实时上报进度。
 
 注册 (install_integration.sh 已做, 手工方式):
 ```bash
-claude mcp add chip-agent -s user -- python3 /tools/lsf_api/chip_ai_agent/mcp_server.py
+claude mcp add chip-agent -s user -- "$CHIP_AGENT_PYTHON" "$CHIP_AGENT_HOME/mcp_server.py"
 claude mcp list        # 应显示 chip-agent - Connected
 ```
 
@@ -136,13 +136,13 @@ claude -p "用 chip-agent 生成 testbench 到 /tmp/my_tb"
 ```
 已验证 E2E: `chip_agent_plan("生成 testbench")` → `testbench_generation` ✔
 
-工程级配置: `/tools/lsf_api/.mcp.json` (放入任意工程根目录即项目级生效)。
+工程级配置: `<project>/.mcp.json` (站点示例 `${CHIP_AGENT_HOME}/../.mcp.json`, 放入任意工程根目录即项目级生效)。
 
 ## streamable-HTTP (团队共享, SDK 模式)
 
 ```bash
 CHIP_AGENT_TRANSPORT=streamable-http CHIP_AGENT_PORT=8000 \
-  python3 /tools/lsf_api/chip_ai_agent/mcp_server.py
+  "$CHIP_AGENT_PYTHON" "$CHIP_AGENT_HOME/mcp_server.py"
 
 # 客户端注册
 claude mcp add chip-agent-http --transport http http://127.0.0.1:8000/mcp
@@ -156,8 +156,8 @@ claude mcp add chip-agent-http --transport http http://127.0.0.1:8000/mcp
 `~/.codex/config.toml`:
 ```toml
 [mcp_servers.chip_agent]
-command = "python3"
-args = ["/tools/lsf_api/chip_ai_agent/mcp_server.py"]
+command = "<CHIP_AGENT_PYTHON>"
+args = ["<CHIP_AGENT_HOME>/mcp_server.py"]
 ```
 
 调用:
@@ -174,7 +174,7 @@ codex mcp list             # 应显示 chip_agent enabled
 ### Claude Code 插件 (Anthropic)
 安装 "Claude Code for VS Code" 扩展后, 它直接复用 Claude Code 的 MCP 配置
 (user 级已注册, 或工程 `.mcp.json`)。在侧边栏 Claude 面板中:
-1. 打开任意工程 (建议把 `/tools/lsf_api/.mcp.json` 复制到工程根)
+1. 打开任意工程 (建议把站点 `${CHIP_AGENT_HOME}/../.mcp.json` 复制到工程根)
 2. 输入 "用 chip-agent 生成 testbench" — 工具自动出现并可调用
 
 ### Codex 插件 (OpenAI)
@@ -206,9 +206,9 @@ codex mcp list             # 应显示 chip_agent enabled
 | `CHIP_AGENT_PLANNER` | `keyword`(默认) / `llm` / `conversational` (需 OPENAI_API_KEY, 无 key 自动回落) |
 | `CHIP_AGENT_LLM_MODEL` / `_BASE_URL` / `_TIMEOUT` | LLM 规划器参数 (默认 gpt-4o-mini / api.openai.com / 30s) |
 | `CHIP_AGENT_AUTO_DISTILL` | `1`(默认) 域内失败 ≥5 条自动蒸馏 knowledge; `0` 关闭 |
-| `CHIP_AGENT_TEMPLATE_TB` | UVM testbench 模板工程 (默认 /tools/lsf_api/uvm_tb) |
+| `CHIP_AGENT_TEMPLATE_TB` | UVM testbench 模板工程 (默认站点值, env 可覆盖) |
 | `CHIP_AGENT_MODULEFILES` / `CHIP_AGENT_EDA_ROOTS` | `:` 分隔的 modulefile 路径 / EDA 厂商根 |
-| `CHIP_AGENT_NPI_ROOT` | NPI kit (pynpi+lib+inc, 默认 /tools/Synopsys/temp/NPI) |
+| `CHIP_AGENT_NPI_ROOT` | NPI kit (pynpi+lib+inc, 默认站点值, env 可覆盖) |
 | `CHIP_AGENT_UVM_ROOT` / `CHIP_AGENT_UVM_TGZ_ROOT` | UVM 参考库 / 1.x tarball 父目录 |
 | `CHIP_AGENT_UG_ROOT` / `CHIP_AGENT_DVCON_ROOT` | UG 手册语料根 / DVCon 语料根 |
 | `CHIP_AGENT_EXAMPLE_UART` | Verification Academy UART 范例树 |
@@ -216,8 +216,8 @@ codex mcp list             # 应显示 chip_agent enabled
 | `CHIP_MCP_SDK_SRC` / `CHIP_AGENT_PYTHON` / `CHIP_AGENT_HOME` | install_sdk.sh / install_integration.sh 路径覆盖 |
 | `CHIP_AGENT_SKILLS` | 主技能目录 (默认 chip_ai_agent/skills) |
 | `CHIP_AGENT_EXTRA_SKILLS` | 附加技能根 (默认 chip_ai_agent/digital/plugins, 17 个 digital-agents 技能) |
-| `CHIP_AGENT_DB` | SQLite 运行库 (默认 /tools/lsf_api/chip_agent_runs.sqlite3; WAL + 线程锁) |
-| `CHIP_AGENT_EXPERIENCE` | experiences.jsonl (默认 /tools/lsf_api/experiences.jsonl) |
+| `CHIP_AGENT_DB` | SQLite 运行库 (默认站点值, env 可覆盖; WAL + 线程锁) |
+| `CHIP_AGENT_EXPERIENCE` | experiences.jsonl (默认站点值, env 可覆盖) |
 | `CHIP_DESIGN_STATE` | design_state.json 路径 (fix_request 闭环) |
 | `CHIP_DESIGN_MEMORY_ROOT` | 两级记忆根目录 (默认 XDG 中央目录, 知识只补缺不覆盖) |
 | `CHIP_AGENT_TOOL_CACHE_TTL` | SDK 模式只读工具结果 TTL 缓存秒数 (默认 30;`0` 关闭) |
@@ -577,7 +577,7 @@ loop),握手失败/服务器带噪音 banner/会话崩溃时自动退回原 sele
 | 切分模型 | 固定 1200 字符滑窗 → 结构感知：`_chunks_structured()` 以章节标题（Chapter N / Section N / N.N 子节 / N 顶层节）与操作步骤块（Step N / N. / a.）为切分单元；CHUNK_CHARS 降级为打包上限 | ✅ |
 | 元数据 | chunk 携带 `section`（所属章节标题）+ `kind`（chapter/steps/prose）；search 命中结果同步返回 | ✅ |
 | 切分精度修正 | 步骤 `N.` 与编号标题冲突（`\d\.?\s+[A-Z]`）→ 多级编号必须含点分数字；短标题章节保底产出 1 个单元（标题即高价值检索上下文）；闭包晚绑定修复 | ✅ |
-| 真实索引重建 | /tools/Synopsys/temp/ug：128 docs → **34574 chunks**（steps 19915 / prose 10749 / chapter 3910；带标题 4000），16.5s | ✅ |
+| 真实索引重建 | UG 语料: 128 docs → **34574 chunks**（steps 19915 / prose 10749 / chapter 3910；带标题 4000），16.5s | ✅ |
 | 测试 | 新增 2 个：切分单元结构断言（步骤列表完整、单元携带章节标题）+ meta/hits 字段契约 | ✅ |
 
 **回归**：`pytest tests -q` → **196 passed**；py_compile OK；MCP 冒烟 chip_ug_search 命中返回 kind/section 字段。
@@ -657,7 +657,7 @@ loop),握手失败/服务器带噪音 banner/会话崩溃时自动退回原 sele
 | 工具包安装 | `.venv` pip 安装 beautifulsoup4 4.15.0 + lxml（HTML 解析） | ✅ |
 | 新模块 | `chip_ai_agent/corpus_convert.py`：解析导出 HTML 内嵌 `const CORPUS` JS 数组，容错截断记录 | ✅ |
 | 语料输出 | `chip_ai_agent/corpus/pcie_ovm/`：sft.jsonl / sft.json / alpaca.json / sharegpt.json + manifest.json | ✅ 23 条，JSONL 全量回验通过 |
-| 内容域 | Synopsys PCIe OVM VIP（agent 配置 / 复位序列 / 覆盖率回调 / TLP-DLLP / LTSSM） | ✅ 三厂商政策合规（OSS 词零命中） |
+| 内容域 | PCIe OVM VIP（agent 配置 / 复位序列 / 覆盖率回调 / TLP-DLLP / LTSSM） | ✅ 三厂商政策合规（OSS 词零命中） |
 
 ## 迭代优化 39b — 厂商手册→Agent 领域技能全链路 (PCIe OVM UG)
 

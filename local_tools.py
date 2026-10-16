@@ -56,6 +56,15 @@ def generate_testbench(args: dict) -> dict:
         dst = out_path / sub
         shutil.copytree(src, dst, dirs_exist_ok=True)
         copied += sorted(str(p.relative_to(out_path)) for p in dst.glob("*.sv"))
+    # sim/ (filelist + run script) so ready_command can run on the EDA host
+    sim_src = TEMPLATE_ROOT / "sim"
+    if sim_src.exists():
+        sim_dst = out_path / "sim"
+        sim_dst.mkdir(exist_ok=True)
+        for name in ("filelist.f", "run_vcs.sh"):
+            if (sim_src / name).exists():
+                shutil.copy2(sim_src / name, sim_dst / name)
+                copied.append(f"sim/{name}")
     shutil.copy2(TEMPLATE_ROOT / "check_uvm_compliance.py",
                  out_path / "check_uvm_compliance.py")
     _last_generated = str(out_path)

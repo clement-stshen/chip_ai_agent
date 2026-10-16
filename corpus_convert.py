@@ -19,9 +19,14 @@ from pathlib import Path
 
 
 def _read_html(path: Path) -> str:
-    from bs4 import BeautifulSoup  # installed via pip (bs4 + lxml)
+    from bs4 import BeautifulSoup  # installed via pip (bs4, lxml optional)
 
-    soup = BeautifulSoup(path.read_bytes(), "lxml")
+    raw = path.read_bytes()
+    try:
+        soup = BeautifulSoup(raw, "lxml")
+    except Exception:
+        # offline fallback: html.parser is stdlib-only
+        soup = BeautifulSoup(raw, "html.parser")
     title = soup.title.string if soup.title else ""
     # JS string literals survive the soup round-trip inside <script>
     scripts = "\n".join(s.get_text() for s in soup.find_all("script"))

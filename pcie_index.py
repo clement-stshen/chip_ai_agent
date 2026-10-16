@@ -1,6 +1,6 @@
 """PCIe OVM User Guide corpus: PDF -> structured units -> SFT + vector index.
 
-Pipeline stage 1/2 of the vendor-manual-to-agent-skill chain:
+Pipeline stage 1/2 of the manual-to-agent-skill chain:
   * extract()   - pypdf text extraction to a side .txt.gz (idempotent)
   * build()     - structured chunks (chapter / steps / prose) + hashed
                   tf-idf inverted index, reusing ug_index internals
@@ -228,9 +228,9 @@ def generate_sft() -> dict:
                     f"PCIe OVM User Guide.")
         elif u["kind"] == "code":
             inst = (f"Show the SystemVerilog OVM code pattern for {title} "
-                    f"in the Synopsys PCIe OVM User Guide.")
+                    f"in the PCIe OVM User Guide.")
         else:
-            inst = (f"Explain {title} in the Synopsys PCIe OVM User Guide.")
+            inst = (f"Explain {title} in the PCIe OVM User Guide.")
         if inst in seen_instructions:
             continue
         seen_instructions.add(inst)

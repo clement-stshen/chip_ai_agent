@@ -13,7 +13,13 @@
 set -euo pipefail
 
 SDK_SRC="${CHIP_MCP_SDK_SRC:-/tools/Synopsys/temp/python-sdk}"
-VENV_PY="${CHIP_AGENT_PYTHON:-/tools/lsf_api/.venv/bin/python}"
+if [ -n "${CHIP_AGENT_PYTHON:-}" ]; then
+    VENV_PY="$CHIP_AGENT_PYTHON"
+elif [ -x "$(cd "$(dirname "$0")/.." && pwd)/.venv/bin/python" ]; then
+    VENV_PY="$(cd "$(dirname "$0")/.." && pwd)/.venv/bin/python"
+else
+    VENV_PY="python3"
+fi
 SDK_PIN="2.3.0"
 
 MODE="${1:-local}"

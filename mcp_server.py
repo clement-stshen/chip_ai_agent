@@ -10,7 +10,8 @@ tool surface (mcp_tools.TOOL_DEFS) — used automatically when the SDK is not
 importable, or forced with CHIP_AGENT_MODE=legacy.
 
 Run (from anywhere):
-    python3 /tools/lsf_api/chip_ai_agent/mcp_server.py
+    "$CHIP_AGENT_PYTHON" "$CHIP_AGENT_HOME/mcp_server.py"
+    (defaults: python3, package directory; see INTEGRATION.md for env list)
 
 Environment:
     CHIP_AGENT_MODE        auto (default) | sdk | legacy
@@ -20,7 +21,7 @@ Environment:
     CHIP_AGENT_EXPERIENCE  (see INTEGRATION.md)
 
 Register:
-    claude mcp add chip-agent -s user -- python3 /tools/lsf_api/chip_ai_agent/mcp_server.py
+    claude mcp add chip-agent -s user -- "$CHIP_AGENT_PYTHON" "$CHIP_AGENT_HOME/mcp_server.py"
     # codex: ~/.codex/config.toml [mcp_servers.chip_agent]
 """
 from __future__ import annotations

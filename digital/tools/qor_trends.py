@@ -354,12 +354,11 @@ def plot_chart(
         import matplotlib.pyplot as plt
     except ImportError:
         print(
-            "[error] matplotlib is not installed. Install it with:\n"
-            "  pip install matplotlib\n"
-            "Or run without --plot for a text-only table.",
+            "[warn] matplotlib is not installed; skipping chart, "
+            "text-only table remains. Install with: pip install matplotlib",
             file=sys.stderr,
         )
-        sys.exit(2)
+        return
 
     # Collect all (domain, field, qualifying_groups) with enough data
     plots: list[tuple[str, str, dict[str, list[tuple[str, float]]]]] = []

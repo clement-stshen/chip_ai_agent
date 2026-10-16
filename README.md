@@ -89,7 +89,7 @@ registry 自动按域分类):
 | `agentic_debug_workflow` | Agentic Debug Copilot | 失败技能禁止原样重试; 3 轮强制收敛 |
 | `waveform_causal_diagnosis` | 因果诊断 | 驱动链与静态连通性矛盾时输出矛盾点 |
 
-使用: `--extra-skills chip_ai_agent/skills` 合并扫描, 与加密 Synopsys 技能包共存
+使用: `--extra-skills chip_ai_agent/skills` 合并扫描, 与站点已有技能包共存
 (总数 98, 新技能可被 `SkillRegistry.parse_skill_md` 解析出 Method/Steps/Pitfalls)。
 
 ## 8. digital-chip-design-agents 全面引入 (`digital/`, 自包含 vendored 副本)
@@ -168,7 +168,7 @@ MIT 许可见 `digital/UPSTREAM_LICENSE`), 完全自包含不依赖外部路径�
 generate testbench / build testbench / 创建 testbench / 生成验证环境` 时,
 触发 `testbench_generation` recipe, 固定两步且**检查不可跳过**:
 
-1. `generate_testbench` — 从 `/tools/lsf_api/uvm_tb` 标准模板
+1. `generate_testbench` — 从 `$CHIP_AGENT_TEMPLATE_TB`(默认站点值见 site_paths.py)标准模板
    (UVM 1800.2-2020.3.1) 生成完整环境 (interface+clocking+modport+SVA /
    transaction+sequences / driver / monitor / agent / coverage /
    scoreboard / env / tests / tb_top)
@@ -222,7 +222,7 @@ bash chip_ai_agent/install_integration.sh   # 一键注册双端 + 安装技能
 - SDK 模式: stdio 协议直测 + streamable-HTTP 冒烟 (20 tools / 4 resources /
   2 prompts 经网络调用) ✔;无 SDK 环境自动回退 legacy (20 tools 可用) ✔
 - 技能: 8 个 SKILL.md 安装到 `~/.claude/skills` 与 `~/.codex/skills`
-- 工程级: `/tools/lsf_api/.mcp.json` (VS Code Claude/Codex 插件复用同一配置)
+- 工程级: `${CHIP_AGENT_HOME}/../.mcp.json` (VS Code Claude/Codex 插件复用同一配置)
 
 ## 11. 真实工程检验: Verification Academy UART 16550
 
@@ -261,7 +261,7 @@ python3 chip_ai_agent/data_quality.py --experience exp.jsonl --db runs.db       
 python3 chip_ai_agent/data_quality.py --experience exp.jsonl --db runs.db --clean  # 清洗
 ```
 处理 8 类脏数据: 无信息记录 / LLM 降级环境噪音 / 重复 / 畸形行 /
-空 run / 孤儿 steps / 陈旧生成目录 / 加密技能误计。
+空 run / 孤儿 steps / 陈旧生成目录 / 不可解析技能包误计。
 已用真实脏数据验证: `/tmp/exp_test.jsonl` (info_free=1) 与
 `/tmp/exp_runs.db` (empty_run=1) 审计→清洗→复审闭环通过;
 单元自测覆盖全部 5 类经验脏数据 (只保留真知识记录)。
@@ -280,7 +280,7 @@ C 头文件 24 个 / pynpi Python 绑定 / verdilearn agentic 层 / FSDB 示例)
 | `fsdb_inspect` | pynpi 程序化波形读取 (sig_value_at / find_x / vc_count), 需真 VERDI_HOME |
 
 **本机环境结论**: 分析机上无 vcs/verdi 二进制 (modulefile 声明的
-`/tools/Synopsys/{vcs,verdi}/Y-2026.03-SP1` 不在本机, 工具在 EDA 主机/LSF 节点),
+modulefile 声明的 VCS_HOME/VERDI_HOME 目录不在本机, 工具在 EDA 主机/LSF 节点),
 因此所有调用**结构化降级**: 返回 `module load synopsys` 指引 + 完整可复制命令,
 绝不中断。工具就位后同一接口零改动直接执行。
 
@@ -377,7 +377,7 @@ python3 -m chip_ai_agent.cli "生成 testbench"          # → 生成 + 合规�
 chip_agent_plan("加载波形并查看占空比")                # MCP 链路: 13 步 0 missing
 ```
 
-注册表统计: `skills=160 encrypted=0`, 11 个领域 + 11 类 target 分布
+注册表统计: `skills=160 unparseable=0`, 11 个领域 + 11 类 target 分布
 (160 = 135 包技能 + 17 插件 + 方法论/语料技能; 见第 16/19 节)。
 已知边界: 15 个 digital-chip-design-agents 领域编排器技能 (architecture/
 sta/dft/...) 无 recipe 引用 — 它们面向跨领域流程编排, 由 LLM 直接调用,
@@ -507,10 +507,10 @@ sta/dft/...) 无 recipe 引用 — 它们面向跨领域流程编排, 由 LLM �
 - **4 个远程技能注册** (run_vcs_simulation / diagnose_sim_log /
   analyze_coverage / generate_uvm_env,SKILL.md + registry 可见),
   新 recipe `verif_agent_flow` (仿真→诊断→覆盖闭环)。
-- **`/tools/lsf_api/.mcp.json` 注册 verif-agent 为第二个 MCP server**
+- **`${CHIP_AGENT_HOME}/../.mcp.json` 注册 verif-agent 为第二个 MCP server**
   (stdio + stub 后端) — Claude Code/Codex 直接可见其 4 工具。
 - **mcp_adapter 升级**: env= 子进程环境注入 + url= streamable-http 传输
-  (SDK Client 双传输)。实测直连 `/opt/verif-agent-mcp/venv/bin/verif-agent-mcp`
+  (SDK Client 双传输)。实测直连 `$CHIP_AGENT_VERIF_AGENT_BIN`
   (stdio+stub) → run_vcs_simulation 返回真实 SimResult(status=pass)。
 - **chip_edatools 上报** `verif_agent_mcp` (installed/config/stdio_command)
   与 `npi` (importable/ready/requires) 块。
@@ -632,6 +632,6 @@ CHIP_AGENT_PYTHON / CHIP_AGENT_HOME 覆盖。变量清单见 INTEGRATION.md。
   五层学习/NPI 层/错误契约/性能基线)
 - **安装配置使用手册**: `chip_ai_agent/docs/INSTALL_CONFIG.md`
   (在线/离线安装、claude/codex/HTTP 配置、env 变量总表、故障排查)
-- **依赖 wheel 本地化**: `/tools/lsf_api/wheelhouse/`(35 wheels / 28MB,
+- **依赖 wheel 本地化**: `chip_ai_agent/wheelhouse/`(47 wheels / 56MB,
   mcp 2.3.0 + mcp-types + numpy + pypdf + pytest 及全传递闭包;scratch venv
   `--no-index` 实测通过),一键离线安装 `chip_ai_agent/install_offline.sh`

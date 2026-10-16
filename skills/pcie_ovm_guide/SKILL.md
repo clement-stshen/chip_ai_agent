@@ -1,11 +1,11 @@
 ---
 name: pcie_ovm_guide
-description: Synopsys PCIe OVM VIP 领域技能: 用户手册向量检索 + 配置代码生成, 支持本地 FastMCP 工具接入
+description: PCIe OVM VIP 领域技能: 用户手册向量检索 + 配置代码生成, 支持本地 FastMCP 工具接入
 ---
-# PCIe OVM Guide Skill (vendor-manual → agent-skill chain)
+# PCIe OVM Guide Skill (manual → agent-skill chain)
 
 ## When To Use
-- 生成/检查 Synopsys PCIe OVM VIP 的 testbench 配置 (root/endpoint, spec, link width, speed)
+- 生成/检查 PCIe OVM VIP 的 testbench 配置 (root/endpoint, spec, link width, speed)
 - 回答 PCIe VIP 使用问题: 复位序列 / 覆盖率回调 / TLP-DLLP / LTSSM / credit 初始化
 - 需要引用 User Guide 原文章节作为依据时
 
