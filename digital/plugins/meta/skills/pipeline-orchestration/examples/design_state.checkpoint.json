@@ -128,7 +128,7 @@
       "failure_class": "none",
       "retry_strategy": "none",
       "suggested_next_step": "proceed",
-      "reason": "gem5 model shows 520 MHz achievable with 4-stage pipeline — exceeds constraints.clock.clk_mhz (500 MHz) by 4%",
+      "reason": "approved architecture model shows 520 MHz achievable with 4-stage pipeline — exceeds constraints.clock.clk_mhz (500 MHz) by 4%",
       "constraint_ref": "clock.clk_mhz"
     },
     {
@@ -140,7 +140,7 @@
       "failure_class": "none",
       "retry_strategy": "none",
       "suggested_next_step": "proceed",
-      "reason": "McPAT estimate: 1.8 mm², 85 mW — area at 90% of constraints.area.area_um2 budget; power at 85% of constraints.power.power_mw budget",
+      "reason": "approved power-area estimate: 1.8 mm², 85 mW — area at 90% of constraints.area.area_um2 budget; power at 85% of constraints.power.power_mw budget",
       "constraint_ref": "power.power_mw"
     },
     {
@@ -212,7 +212,7 @@
       "failure_class": "none",
       "retry_strategy": "none",
       "suggested_next_step": "proceed",
-      "reason": "Verilator lint: 0 errors, 2 warnings (waived)",
+      "reason": "SpyGlass lint: 0 errors, 2 warnings (waived)",
       "constraint_ref": null
     },
     {
@@ -236,7 +236,7 @@
       "failure_class": "timing",
       "retry_strategy": "refine",
       "suggested_next_step": "loop_back_to:rtl_coding",
-      "reason": "Yosys synth_check: WNS -0.4 ns on dp_path — refine RTL targeting the failing path before re-check",
+      "reason": "Design Compiler synth_check: WNS -0.4 ns on dp_path — refine RTL targeting the failing path before re-check",
       "constraint_ref": "timing.wns_ns_target"
     },
     {
@@ -248,7 +248,7 @@
       "failure_class": "none",
       "retry_strategy": "none",
       "suggested_next_step": "proceed",
-      "reason": "Yosys synth_check: WNS +0.3 ns — meets constraints.timing.wns_ns_target (0); area within estimate",
+      "reason": "Genus synth_check: WNS +0.3 ns — meets constraints.timing.wns_ns_target (0); area within estimate",
       "constraint_ref": "timing.wns_ns_target"
     },
     {

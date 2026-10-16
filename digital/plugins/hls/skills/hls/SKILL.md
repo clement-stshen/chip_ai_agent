@@ -47,16 +47,12 @@ and co-simulation to verify RTL matches the golden C model.
 
 ## Supported EDA Tools
 
-### Open-Source
-- **Bambu HLS** (`bambu`) — open-source HLS from Politecnico di Milano
-- **LegUp HLS** — FPGA-targeted HLS built on LLVM
-- **Calyx / Futil** — infrastructure for HLS compilers (academic)
-- **MLIR/CIRCT** (`circt-opt`) — compiler infrastructure for hardware design
-
-### Proprietary
-- **Xilinx Vitis HLS** (`vitis_hls`) — C/C++ to RTL for AMD/Xilinx devices
+### Supported EDA Tools
 - **Cadence Stratus** (`stratus`) — SystemC/C++ HLS for ASIC and FPGA
 - **Siemens Catapult** (`catapult`) — algorithmic synthesis from C++/SystemC
+
+Use only Cadence Stratus or Siemens Catapult for HLS execution. Unsupported
+device-specific flows must be escalated rather than substituted with other tools.
 
 ---
 
@@ -69,7 +65,7 @@ and co-simulation to verify RTL matches the golden C model.
 4. System calls (printf, file I/O) → wrap in `#ifndef __SYNTHESIS__`
 5. Function pointers → replace with switch/case dispatch
 6. Data-dependent loop bounds → add maximum bound + early-exit flag
-7. Floating-point → evaluate fixed-point (`ap_fixed<W,I>` for Vitis HLS)
+7. Floating-point → evaluate fixed-point using the selected vendor tool's supported types
 
 ### Analysis Steps
 1. Identify innermost critical loop — the performance bottleneck

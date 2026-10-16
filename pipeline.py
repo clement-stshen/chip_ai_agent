@@ -1,5 +1,5 @@
 """Verification stage pipeline, ported from digital-chip-design-agents
-verification-orchestrator: 8 stages, deterministic loop-back rules with
+verification-orchestrator: RTL, reset/CDC/low-power/X-prop stages, deterministic loop-back rules with
 per-row caps, and escalation with full state when caps are exhausted.
 """
 
@@ -9,7 +9,8 @@ from .failure_taxonomy import classify_failure, retry_strategy_for
 
 VERIFICATION_STAGES = [
     "tb_architecture", "test_planning", "uvm_tb_build", "directed_tests",
-    "constrained_random", "coverage_analysis", "formal_assist",
+    "constrained_random", "coverage_analysis", "reset_regression",
+    "cdc_rdc_tests", "low_power_upf_checks", "xprop_tests", "formal_assist",
     "regression_signoff",
 ]
 

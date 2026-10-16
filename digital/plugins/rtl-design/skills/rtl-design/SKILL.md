@@ -48,17 +48,13 @@ and synthesis handoff.
 
 ## Supported EDA Tools
 
-### Open-Source
-- **Verilator** (`verilator --lint-only`) — fast lint and simulation
-- **Slang** (`slang`) — modern, standards-compliant SV parser and elaborator
-- **Surelog** (`surelog`) — SystemVerilog pre-processor and front-end for Yosys
-- **sv2v** (`sv2v`) — SystemVerilog-to-Verilog converter
-- **Icarus Verilog** (`iverilog`) — Verilog/SV simulator for quick sanity checks
-
-### Proprietary
+### Supported EDA Tools
 - **Synopsys SpyGlass** (`spyglass`) — lint, CDC, RDC, and clock-domain analysis
 - **Cadence JasperGold CDC** (`jg`) — formal CDC verification
 - **Siemens Questa CDC** (`vsim`) — CDC analysis and sign-off
+
+For simulation or synthesis checks, use an explicitly selected licensed tool from
+these vendors; do not silently fall back to an open-source EDA tool.
 
 ---
 
@@ -121,10 +117,10 @@ Apply these rules for every clock domain. Read `clock_power_budget` from the arc
 hand-off package. **For orchestrated Architecture → RTL runs, the `clock_power_budget` table
 is a required handoff contract; if missing, treat as a handoff violation and abort with a
 clear error directing the user to notify upstream packaging.** For non-orchestrated or local
-RTL-only runs, classify domains using toggle-count estimates from Verilator simulation as
-a fallback.
+RTL-only runs, use a documented activity estimate from an approved vendor simulation or
+an analytical model as a fallback.
 
-1. **High gating opportunity domains** (α < `design_state.constraints.power.activity_factors.default` (default: 0.15) from architecture, or toggle rate below that threshold from Verilator): insert an ICG cell (`CLKGATETST_X*` or technology-equivalent) at the outermost clock enable boundary. Do not rely on synthesis to infer clock gates — explicit ICG insertion at RTL is required.
+1. **High gating opportunity domains** (α < `design_state.constraints.power.activity_factors.default` (default: 0.15) from architecture, or a toggle rate below that threshold from approved simulation): insert an ICG cell (`CLKGATETST_X*` or technology-equivalent) at the outermost clock enable boundary. Do not rely on synthesis to infer clock gates — explicit ICG insertion at RTL is required.
 2. **Moderate gating opportunity domains** (`activity_factors.default` ≤ α < `activity_factors.high` (defaults: 0.15–0.40)): insert ICG at the sub-block level for any register file or datapath wider than 32 bits.
 3. **Always-on domains** (α ≥ `activity_factors.high` (default: 0.40), or documented as always-on in architecture hand-off):
    no ICG required; add a `/* always-on: <reason> */` comment at the clock port declaration.
@@ -140,10 +136,9 @@ a fallback.
 
 | Tool | Type | Use |
 |------|------|-----|
-| Verilator | Open-source | Toggle coverage → activity factor for gating classification |
-| SpyGlass (Synopsys) | Proprietary | RTL power lint, missing ICG detection |
-| VC Static (Synopsys) | Proprietary | Power-intent rule checking |
-| Questa PowerPro (Siemens) | Proprietary | Formal power analysis |
+| SpyGlass (Synopsys) | Synopsys | RTL power lint, missing ICG detection |
+| VC Static (Synopsys) | Synopsys | Power-intent rule checking |
+| Questa PowerPro (Siemens) | Siemens | Formal power analysis |
 
 ### Output Required
 - RTL source files (.sv) per module

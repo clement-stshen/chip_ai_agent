@@ -47,18 +47,13 @@ compliance, and equivalence checking between RTL and gate-level netlists.
 
 ## Supported EDA Tools
 
-### Open-Source
-- **SymbiYosys** (`sby`) — formal property verification front-end for open-source solvers
-- **Yosys** (`yosys`) — synthesis and equivalence checking back-end
-- **Boolector** — SMT solver for bit-vector arithmetic
-- **Z3** — general-purpose SMT solver from Microsoft Research
-- **ABC** — logic synthesis and verification framework (sequential equivalence)
-- **Tabby CAD Suite** — commercial bundle of sby + solvers (from YosysHQ)
-
-### Proprietary
+### Supported EDA Tools
 - **Cadence JasperGold** (`jg`) — industry-standard FPV, CDC, DFT formal
 - **Synopsys VC Formal** (`vcf`) — property checking and equivalence verification
 - **Siemens Questa Formal** (`qformal`) — FPV and coverage closure
+
+Use only these licensed formal EDA tools; do not route proofs to open-source
+front-ends or standalone solver toolchains.
 
 ---
 

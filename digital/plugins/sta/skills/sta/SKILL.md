@@ -46,35 +46,11 @@ and timing sign-off. WNS ≥ 0 and TNS = 0 at all corners required for tape-out.
 
 ## Supported EDA Tools
 
-### Open-Source
-- **OpenSTA** (`sta`) — standalone open-source STA; runs tcl scripts in batch mode (see sequential flow note below)
-- **OpenROAD STA subsystem** (`openroad -no_init`) — STA within the OpenROAD PD flow; runs sequentially via tcl script
-
-### Proprietary
+### Supported EDA Tools
 - **Synopsys PrimeTime** (`pt_shell`) — gold-standard multi-corner STA and power analysis
 - **Cadence Tempus** (`tempus`) — concurrent multi-mode multi-corner STA with ECO guidance
-
-### Sequential Flow Log Review (OpenSTA / OpenROAD STA)
-
-OpenSTA (`sta`) and the OpenROAD STA subsystem (`openroad -no_init`) execute tcl script
-commands sequentially. When run in batch mode the agent must parse the output log to
-extract timing results — there is no interactive prompt to query mid-run.
-
-**Key log patterns to parse after run completion:**
-- `report_timing` output → extract WNS (worst negative slack) and critical path
-- `report_tns` output → extract TNS (total negative slack) per corner
-- `report_clock_skew` output → global skew and insertion delay per clock group
-- `check_timing` → missing constraints, unconstrained endpoints, loops
-
-**Batch invocation:**
-```
-opensta -no_splash -exit timing_check.tcl > sta.log 2>&1
-# or via OpenROAD:
-openroad -no_init -exit sta.tcl > sta.log 2>&1
-```
-
-Parse `sta.log` after completion. Apply loop-back rules (ECO guidance stage) if
-setup/hold violations are found.
+Use the selected vendor's native STA environment and reports; do not substitute
+standalone open-source timing engines.
 
 ---
 

@@ -58,7 +58,11 @@ def _legacy_handle(msg: dict) -> dict | None:
     if method == "ping":
         return {"jsonrpc": "2.0", "id": msg_id, "result": {}}
     if method == "tools/list":
-        return {"jsonrpc": "2.0", "id": msg_id, "result": {"tools": tools_schema()}}
+        # optional server-side filter: tools/list {"domain": "verification"}
+        # unknown domain → explicit empty list (client-visible contract)
+        domain = params.get("domain") if isinstance(params, dict) else None
+        return {"jsonrpc": "2.0", "id": msg_id,
+                "result": {"tools": tools_schema(domain)}}
     if method == "tools/call":
         res = call_tool(params.get("name", ""), params.get("arguments", {}) or {})
         return {"jsonrpc": "2.0", "id": msg_id, "result": res}

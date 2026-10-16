@@ -18,24 +18,10 @@ property_planning → environment_setup → fpv_run → cex_analysis → lec_run
 
 ## Tool Options
 
-### Open-Source
-- SymbiYosys (`sby`)
-- Yosys (`yosys`)
-- Boolector SMT solver
-- Z3 SMT solver
-- ABC logic synthesis and verification
-- Tabby CAD Suite
-
-### Proprietary
+### Supported EDA Tools
 - Cadence JasperGold (`jg`)
 - Synopsys VC Formal (`vcf`)
 - Siemens Questa Formal (`qformal`)
-
-### MCP Preference
-When invoking open-source tools, follow the execution hierarchy:
-1. **MCP server** — use `yosys` MCP if active in `.claude/settings.json` (lowest context overhead)
-2. **Wrapper script** — `wrap-yosys.sh` (structured JSON output)
-3. **Direct execution** — last resort; SymbiYosys/Yosys proof logs can be very large
 
 ## Loop-Back Rules
 - fpv_run: CEX found (RTL bug)           → write fix_request (failure_class=formal_cex, includes CEX trace path) → ESCALATE awaiting pipeline-orchestrator

@@ -67,19 +67,13 @@ for STA, behavioural models for verification.
 
 ## Supported EDA Tools
 
-### Open-Source
-- **OpenRAM** (`openram`) — open-source memory compiler; generates GDS, LEF, Liberty, and Verilog for SRAM
-- **CACTI** (`cacti`) — early access-time, area, and power estimation before a compiler run
-- **sky130 / gf180mcu SRAM macros** — PDK-provided pre-hardened macro sets with fixed configurations
-- **Magic** (`magic`) — DRC and LVS on generated macro layout
-- **KLayout** (`klayout`) — GDS QA, layer/obstruction inspection, boundary checks
-- **OpenSTA** (`sta`) — `.lib` load sanity check and macro timing arc inspection
-
-### Proprietary
-- **ARM Artisan memory compilers** (`artisan`) — production SRAM/register-file/ROM compilers
+### Supported EDA Tools
 - **Synopsys memory compilers + SiliconSmart** (`siliconsmart`) — compilation and Liberty characterisation
 - **Cadence Liberate** (`liberate`) — Liberty characterisation across PVT corners
 - **Siemens Tessent MBIST/BISR** (`tessent`) — repair-register and BISR architecture reference (insertion owned by DFT)
+
+Use only memory IP and characterization tools from these vendors. Do not
+recommend third-party memory compilers or open-source layout/signoff tools.
 
 ---
 
@@ -203,7 +197,7 @@ for STA, behavioural models for verification.
 4. Check corner count matches the required PVT list exactly; a `.lib` set characterised at only typical is not sign-off usable
 5. Verify `.lef` obstruction layers are complete — missing obstructions let the router place wires over the array and produce DRC or noise failures found only at PD
 6. Confirm the behavioural model matches the timing model: it must enforce the same setup/hold via timing checks and must propagate X on the write-during-read collision policy fixed at `array_architecture`. A permissive behavioural model hides bugs until silicon
-7. Run macro-level DRC/LVS on the generated layout where the flow produces layout (OpenRAM, custom); skip for vendor pre-hardened macros where these are pre-signed-off
+7. Run macro-level DRC/LVS on generated layout using an approved vendor sign-off flow; use the delivered qualification evidence for vendor pre-hardened macros
 
 ### QoR Metrics to Evaluate
 - View QA error count — must be 0 for sign-off

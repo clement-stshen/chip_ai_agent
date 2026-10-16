@@ -16,11 +16,8 @@
   only appear as silent data corruption. Wire SVA cover points to the coverage database to avoid
   double-counting them as functional coverage.
 
-## Successful Tool Flags
+## Successful Vendor Tool Options
 
-- `verilator --coverage --coverage-line --coverage-toggle -Wno-UNOPTFLAT` — enables line,
-  toggle, and user coverage collection; `-Wno-UNOPTFLAT` suppresses expected warnings from
-  UVM dynamic connections.
 - `vcs -sverilog +vcs+lic+wait +UVM_NO_RELNOTES -cm line+cond+fsm+tgl` — `+vcs+lic+wait`
   prevents licence timeout failures in batch regressions; `-cm` flags enable all coverage types.
 - `xrun -uvm -coverage all -covworkdir <dir>` — Xcelium coverage merge from multiple regression
@@ -28,12 +25,6 @@
 
 ## PDK / Tool Quirks
 
-- **Verilator UVM library**: The open-source UVM library (`uvm-core`) compiles with Verilator
-  but does not support all UVM phasing features. Specifically, `uvm_objection` timeout-based
-  drain time is not supported — use explicit event-based drain instead.
-- **cocotb + Verilator coverage**: cocotb does not natively export Verilator coverage to the
-  standard UCDB format. Use `verilator_coverage --write-info <info> <dat>` to convert, then
-  `urg -dir <info>` for HTML reports.
 
 ## Notes
 

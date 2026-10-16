@@ -1,16 +1,10 @@
-# 芯片研发与验证智能 AI Agent(基于 Synopsys MCP 技能面)
+# 芯片研发与验证智能 AI Agent
 
-## 1. 源目录分析(`/tools/Synopsys/temp`)
+## 1. 能力面概述
 
-| 内容 | 说明 |
-|---|---|
-| `mcp/` | 标准 MCP Python SDK(client + server + FastMCP),作为协议层 |
-| `skills/` | **126 个技能目录**(92 顶层 + `waveform/` 3 + `design_exploration/` 33),原为 Fernet 加密(`gAAAA...`),由对应 MCP 服务端解密加载 |
-| `skills_decrypted/` | **全部 126 个 SKILL.md 已解密**,已引入 Agent(见第 15 节) |
-| `SKILL.tar` / `mcp_snpls.tar.gz` | 技能与 SDK 的分发包 |
-
-技能面(从目录名归纳)覆盖 7 大域:设计探索、调试追踪(驱动链/X 传播)、
-波形取证(FSDB)、断言、覆盖率收敛、功耗/UPF、源码检索。
+**126 个技能目录**(92 顶层 + `waveform/` 3 + `design_exploration/` 33),
+全部自包含于 `chip_ai_agent/skills/`,覆盖 7 大域:设计探索、调试追踪
+(驱动链/X 传播)、波形取证(FSDB)、断言、覆盖率收敛、功耗/UPF、源码检索。
 
 ## 2. 芯片研发与验证痛点(由该能力面反推)
 
@@ -44,7 +38,6 @@ intent ─▶ Planner(recipes.py 意图匹配)
 
 ```bash
 python3 -m chip_ai_agent.cli "trace X propagation of u_core/dout" \
-    --skills /tools/Synopsys/temp/skills \
     --server <verdi-mcp-server-cmd> --args...
 ```
 
@@ -56,7 +49,7 @@ MCP server 后即为可执行的调试/验证 Copilot。
 - 用 LLM 替换关键词匹配,实现多轮对话式规划
 - ✅ RunReport 存 SQLite,沉淀"调试经验图谱"(`--db chip_agent_runs.db`,
   `--history` 查看最近运行,`--stats` 查看各技能成功率)
-- ✅ SKILL.md 解析器(`SkillRegistry.parse_skill_md`):技能包解密后可提取
+- ✅ SKILL.md 解析器(`SkillRegistry.parse_skill_md`):技能包可提取
   name/description/sections,用于自动生成 tool call 参数
 - ✅ LLM Planner 接口层(`planner.py`):`KeywordPlanner` 基线 +
   `LLMPlanner`(OpenAI 兼容 /v1/chat/completions,支持 OpenAI / Ollama /
@@ -103,7 +96,7 @@ registry 自动按域分类):
 
 来源: Claude Code marketplace 插件 (16 插件 / 17 明文 SKILL.md / 14 域 + 流水线编排)。
 **已完整 vendor 到 `chip_ai_agent/digital/`** (上游 commit 见 `digital/UPSTREAM_COMMIT`,
-MIT 许可见 `digital/UPSTREAM_LICENSE`), 不再依赖 `/tools/Synopsys/temp` 外部路径。
+MIT 许可见 `digital/UPSTREAM_LICENSE`), 完全自包含不依赖外部路径。
 
 - ✅ **17 个领域技能默认注册**: architecture / rtl-design / verification /
   formal / synthesis / dft / sta / hls / pd / soc / memory-ip / compiler /
@@ -117,11 +110,9 @@ MIT 许可见 `digital/UPSTREAM_LICENSE`), 不再依赖 `/tools/Synopsys/temp` �
   `<domain>/experiences.jsonl` (按 run_id upsert), 根解析对齐上游
   (arg > `CHIP_DESIGN_MEMORY_ROOT` > XDG 中央目录 > vendored 种子);
   MCP 工具 `chip_memory_search` / `chip_memory_distill` / `chip_qor_trends`
-- ✅ **EDA wrapper 执行层** (`eda_wrappers.py`): 8 个输出压缩 wrapper
-  (verilator/yosys/openroad/opensta/klayout/symbiflow/bambu/gem5),
-  大日志→紧凑 JSON, 强制 "exit 0 ≠ pass, 必须有 TEST PASSED 标记";
-  MCP 工具 `chip_eda_wrappers`; 上游 wrapper 无执行位的部署缺陷已修
-  (bash 回退 + OSError 兜底, 见 `digital/plugins/infrastructure/tools/mcp-adapter.py`)
+- ✅ **EDA 工具策略**: 仅允许 Synopsys、Cadence、Siemens EDA 工具；`chip_infra_detect`
+  只检测厂商工具与非 EDA 主机工具，不安装工具、不生成 EDA wrapper/MCP 配置，
+  不配置开源或其他厂商 EDA 回退
 - ✅ **16 个新 recipe**: 架构评估/RTL/形式/综合/DFT/STA/PD/HLS/SoC/Memory IP/
   编译器/固件/FPGA/基础设施/fix_request 闭环/记忆维护, 触发词含中英文
 - ✅ **failure_taxonomy.py**: 移植 10 值 `failure_class → retry_strategy`
@@ -160,10 +151,10 @@ MIT 许可见 `digital/UPSTREAM_LICENSE`), 不再依赖 `/tools/Synopsys/temp` �
 | **域内执行** | `design_pipeline.py` `DomainFlowRunner` | 阶段执行 + loop-back 上限强制; 无规则/上限耗尽→带完整状态升级; DUT bug 走 fix_request 交接而非本地重试; sign-off checkpoint 人审门 (`pending_approval`); 每阶段写 design_state `history[]` 10 字段 trace; 每次终止路径写域级 experiences.jsonl (上游 schema) |
 | **跨域闭环** | `CrossDomainDriver` + `design_state.py` | dispatch_rtl → claim → fixed → re_verify → cap/divergence → archive, 验证↔RTL 反馈环全代码化 |
 | **Reporting Contract** | `reporting.py` | exit 0 ≠ pass; 未运行的 gate = NOT RUN 永不报 PASS; measured/inferred 分离; FAIL/WARN 必带 failure_class+retry_strategy; signoff 仅当全部 gate measured-PASS; `gate_from_wrapper()` 直接消费 wrapper JSON |
-| **基础设施** | `infra_detect.py` + `eda_wrappers.py` | 24 开源 + 7 商用(detect-only) 检测 + 8 wrapper + 11 MCP 配置部署状态; wrapper 执行层强制 pass-marker 判定 |
+| **基础设施** | `infra_detect.py` | Synopsys/Cadence/Siemens 工具 detect-only + 非 EDA 主机工具分列; 不安装、不部署 wrapper/MCP |
 | **记忆** | `digital_memory.py` + agent 集成 | 两级记忆全链路: 规划时自动注入匹配域的 knowledge + 相关经验 (`plan.domain_knowledge_preview/domain_experience`); 运行后按域落 experiences |
 
-**MCP 工具 (19 个)**, 新增:
+**MCP 工具 (24 个)**(含 2026-10 语料扩展), 新增:
 - `chip_design_pipeline` — plan/status/run/next/re_verify (spec→tape-out 引擎)
 - `chip_domain_flows` — 任意域的阶段/loop-back/sign-off/工具查询
 - `chip_infra_detect` — 基础设施对齐检测
@@ -235,7 +226,7 @@ bash chip_ai_agent/install_integration.sh   # 一键注册双端 + 安装技能
 
 ## 11. 真实工程检验: Verification Academy UART 16550
 
-用 `/tools/Synopsys/temp/uart_example` (Coverage Cookbook 级参考工程:
+用 UART 16550 参考工程 (路径经 `CHIP_AGENT_EXAMPLE_UART` 配置; Coverage Cookbook 级参考工程:
 3 agent + 5 coverage monitor + 3 scoreboard + 寄存器模型 + 8 测试, 89 文件)
 检验 AI Agent 的 `check_uvm_compliance` 能力, 并**反哺修复检查器 4 个缺陷**:
 
@@ -259,7 +250,7 @@ MCP 链路 (`chip_check_uvm_compliance`) 对真实工程 E2E 验证通过。
 
 **提升 Agent 需要的资料** (按组件映射, 完整清单见文档):
 - Planner: 历史意图→recipe 配对、调试工单文本、真实 MCP tools/list 输出
-- Skills: **✅ 已获得: 126/126 个 SKILL.md 全量解密并引入 (第 15 节)**; 仍缺: 断言库、覆盖率报告样例
+- Skills: **✅ 已获得: 126 个 SKILL.md 全量引入 (第 15 节)**; 仍缺: 断言库、覆盖率报告样例
 - Experience: 真实失败案例 (schema 见文档, 含根因与修复动作)
 - Testbench: 更多 DUT 参考 (APB/SPI/I2C)、内部 UVM 编码规范
 - LLM: 200+ intent→plan 标注对 (few-shot / 本地模型微调)
@@ -277,7 +268,7 @@ python3 chip_ai_agent/data_quality.py --experience exp.jsonl --db runs.db --clea
 
 ## 13. EDA 工具调用层 (VCS / Verdi / NPI)
 
-基于 `/tools/Synopsys/temp/NPI` 分析 (Synopsys 官方编程接口套件:
+基于 NPI 编程接口套件分析 (路径经 `CHIP_AGENT_NPI_ROOT` 配置; Synopsys 官方编程接口套件:
 C 头文件 24 个 / pynpi Python 绑定 / verdilearn agentic 层 / FSDB 示例)
 新增 `eda_tools.py`, 让 Agent 具备真实 EDA 工具调用能力:
 
@@ -326,12 +317,11 @@ tool_error→regenerate) + 构造的 VCS 编译/UVM 失败/通过/licence/LSF �
 集成: recipe `log_analysis` (分析log/analyze log/看log/日志...),
 本地工具 `analyze_eda_log`, MCP 工具 `chip_analyze_eda_log` (共 11 个)。
 
-## 15. 全量技能解密引入 + 缺陷修复 (`skills_decrypted`)
+## 15. 全量技能引入 + 缺陷修复
 
-`/tools/Synopsys/temp/skills_decrypted` 下 **126/126 个 SKILL.md 已全部解密**。
-本次迭代将其引入 Agent 并修复由此暴露的功能缺陷:
+**126 个 SKILL.md 已全部引入注册表**。本次迭代完成技能面引入并修复由此暴露的功能缺陷:
 
-### 技能面引入
+### 技能注册表引入
 
 - **落盘**: 123 个唯一技能 (90 顶层 + 33 个 `design_exploration/` 嵌套)
   复制进 `chip_ai_agent/skills/`, 自包含不再依赖 temp 目录;
@@ -357,7 +347,7 @@ tool_error→regenerate) + 构造的 VCS 编译/UVM 失败/通过/licence/LSF �
   check_uvm_compliance/run_simulation/coverage_driven_stimulus/
   formal-verification/vplan_coverage_traceability)。
 - **MCP server** (`mcp_server.py` v1.3.0): 默认技能目录改为 Agent 自带
-  `skills/` (135 技能 + 17 插件 + uvm_methodology = 153, 0 加密); `CHIP_AGENT_EXTRA_SKILLS`
+  `skills/` (135 技能 + 17 插件 + 方法论/语料技能 = 160, 0 加密); `CHIP_AGENT_EXTRA_SKILLS`
   环境变量 (默认 digital-chip-design-agents/plugins, `:` 分隔); Agent 实例
   单例缓存, 不再每次调用全量重扫。
 
@@ -387,14 +377,14 @@ python3 -m chip_ai_agent.cli "生成 testbench"          # → 生成 + 合规�
 chip_agent_plan("加载波形并查看占空比")                # MCP 链路: 13 步 0 missing
 ```
 
-注册表统计: `skills=153 encrypted=0`, 11 个领域 + 11 类 target 分布
-(153 = 135 包技能 + 17 插件 + uvm_methodology; 见第 16 节)。
+注册表统计: `skills=160 encrypted=0`, 11 个领域 + 11 类 target 分布
+(160 = 135 包技能 + 17 插件 + 方法论/语料技能; 见第 16/19 节)。
 已知边界: 15 个 digital-chip-design-agents 领域编排器技能 (architecture/
 sta/dft/...) 无 recipe 引用 — 它们面向跨领域流程编排, 由 LLM 直接调用,
 不进调试 recipe; `uvm_verification_flow` 的 loop-back 预算仍由 pipeline.py
 执行, recipe 只负责技能映射。
 
-## 16. UVM 参考库全面引入 (`/tools/Synopsys/temp/uvm`, 2026-10)
+## 16. UVM 参考库全面引入 (路径经 `CHIP_AGENT_UVM_ROOT` 配置, 2026-10)
 
 对 Accellera UVM 参考库目录做全量分析 (6 套完整 release + 4 tarball), 并全面
 接入 agent 工具链:
@@ -491,9 +481,9 @@ sta/dft/...) 无 recipe 引用 — 它们面向跨领域流程编排, 由 LLM �
 
 回归: `tests/test_memory_learning.py` 30 项 — 总计 95 tests。
 
-## 18. NPI + Synopsys MCP 栈全面引入 (2026-10, 深度解密分析)
+## 18. NPI + Synopsys MCP 栈全面引入 (2026-10, 深度分析)
 
-对 `/tools/Synopsys/temp/{NPI,mcp}` 与 Synopsys MCP 组件
+对 NPI 套件与 Synopsys MCP 组件
 (verif-agent-mcp / muilt-agent-hub / copilot MCP) 做全量反解分析后的整合:
 
 ### NPI 本地波形执行层 (`npi_tools.py`)
@@ -525,11 +515,123 @@ sta/dft/...) 无 recipe 引用 — 它们面向跨领域流程编排, 由 LLM �
 - **chip_edatools 上报** `verif_agent_mcp` (installed/config/stdio_command)
   与 `npi` (importable/ready/requires) 块。
 
-### 解密面归档
-
-- Verdi 技能 Fernet 密钥与解密链路已在 `/tools/Synopsys/temp/re_scripts/`
-  (decrypt_all.py),解密产物 `skills_decrypted/` (92 目录/126 SKILL.md);
-  muilt-agent-hub 的 Fernet 仅用于 API key 加密,与技能无关 (密钥来源
-  `FERNET_KEY` env)。skills 密钥仅用于读取客户自有授权技能面,不外泄。
-
 回归: `tests/test_npi_verif_agent.py` 12 项 — 总计 115 tests。
+
+## 工具错误契约 (error_code)
+
+`tools/call` 失败时, 结果文本为结构化 JSON: `{error, error_code, retryable}`
+(顶层 `error` 键向后兼容; 域结果自身的 ok/error 语义不变, 仍由 isError 判定)。
+
+| error_code | 含义 | retryable |
+|---|---|---|
+| `unknown_tool` | 工具名不存在 | false |
+| `timeout` | server 侧超时 (后台可能仍在跑) | true |
+| `internal` | handler 异常 (transient, 建议重试) | true |
+| `config_missing` | 环境缺失 (如 CHIP_AGENT_DB 未设) | false |
+
+### 架构模块 (Step 6 后)
+
+| 模块 | 职责 |
+|---|---|
+| `tool_registry.py` | 单一事实源: ToolDef + 全部 handler + `_TOOL_DOMAINS` (7 域) |
+| `mcp_tools.py` | server 管道: legacy dispatch / ToolError 契约 / boot audit / agent 单例 |
+| `sdk_server.py` | SDK v2: 工具 codegen / 只读缓存 / progress / lifespan / streamable-HTTP |
+| `mcp_server.py` | 双模式入口: SDK 主 + legacy 回退 (`CHIP_AGENT_MODE=auto/sdk/legacy`) |
+
+tools/list 支持 server 端域过滤 (legacy): `{"method": "tools/list",
+"params": {"domain": "verification"}}`, 未知域返回空列表。
+
+## 七项工程师能力 ↔ agent 能力矩阵 (Step 8)
+
+资深芯片工程师七项核心能力已显式映射到 agent 机制与工具,
+通过 `chip_flow_guide {"op": "capabilities"}` 可编程查询:
+
+| 能力 | agent 机制 | 工具 |
+|---|---|---|
+| 理解规格 (spec) | plan() intent→domain→recipe 映射 + 域 knowledge 注入; chip_ug_search 向量检索官方手册; chip_dvcon_search 按 track 检索 DVCon 2025/2026 方法论文 | chip_agent_plan / chip_ug_search / chip_dvcon_search / chip_domain_flows |
+| 规划架构 | 四相主线 pipeline_plan + 反馈环架构级回退 (WNS 不收敛→RTL restructure) + checkpoint | chip_agent_plan / chip_domain_flows / chip_flow_guide |
+| 使用 EDA 工具 | 三家厂商工具可用性探测 + 具体域内执行 + 常见根 setup 指引 + NPI C API 索引 | chip_edatools / chip_run_simulation / chip_npi |
+| 阅读报告 | eda_log_analyzer 结构化解析 + 失败分类 + 下一步推荐 | chip_analyze_eda_log |
+| 定位根因 | failure_taxonomy 分类 + waveform 因果诊断 + 覆盖洞回溯 | chip_analyze_eda_log / chip_agent_skills / chip_open_waveform |
+| 保护已有正确行为 | RTL reference equivalence、综合/后端 LEC、零失败回归均为 measured-PASS 硬门；另有 UVM 合规检查与已验证经验复用 | chip_check_uvm_compliance / chip_design_pipeline / chip_agent_recall |
+| 推动 PPA + 物理规则收敛 | signoff_gates 显式门槛 + 反馈环 (时序/功耗/面积→上游回退路径) | chip_domain_flows / chip_flow_guide |
+
+防漂移保障: 能力矩阵引用的工具名由回归测试强制校验必须存在于
+`tool_registry._DEF_BY_NAME` 单一事实源, 引用不存在工具时测试即失败。
+
+SDK 只读资源 `chip://capabilities` 暴露七项工程师能力矩阵;
+pd 域签核门槛含 IR drop (≤5% VDD) 与 EM (==0)。
+
+### RTL Simulation 之后的验证闭环
+
+`chip_flow_guide` 的 `post_rtl_checklist` 操作提供可查询的七类深度检查清单，
+并将每一项绑定到 `domain_flows.py` 中真实存在的 measured-PASS signoff gate。
+RTL 仿真通过本身不构成签核。进入综合、后端或 tape-out 前还必须检查：
+
+- 综合前后 LEC、门级关键功能测试和 post-route netlist 功能测试
+- SDC 错误、未定义时钟、未约束端点，以及所有签核 corner/mode 的 setup/hold WNS、TNS 和 violation 数
+- Reset 回归、CDC/RDC、UPF 低功耗断言和 X-propagation
+- ECO 后等价性；没有 ECO 时也必须提供有证据的 measured N/A 结果
+- PPA 优化后的 baseline regression、功耗/面积、IR/EM、DRC/LVS 和 antenna 结果
+
+缺失的 gate 是 NOT RUN，不能由其他阶段的 PASS 替代；失败需按域流程 loop-back
+或 escalation。可通过 MCP 工具 `chip_flow_guide` 调用
+`{"op":"post_rtl_checklist"}` 查看机器可读门槛映射。
+
+loop_back 目标语义 (测试锁定): goto ≤ stage 为上游回退或就地重试,
+goto == stage+1 允许作为指定修复点; 跨多 stage 的前向跳转禁止。
+
+### REA 二进制实证 + 全局架构整合 (2026-10-16)
+
+- **REA (Ghidra 12.1.4) 反编译 `_npisys.so::init` (0x110cb1) 实证激活门**:
+  空 argv 直达 `getenv("VERDI_HOME")` → `snprintf("%s/bin/%s", v, "npi")` →
+  `fopen(path,"r")` 失败即报错返回;argv[0] 为可读文件且含 "npisys.init" 行、
+  `PYNPI_INIT_WITH_PROGRAM_NAME>0`、`-ncx`(POWREP/VERDI_REPLAY)为合法分支。
+  `npi_tools.npi_available()` 与库门完全一致 — 无伪造、无绕过,降级契约实证成立。
+- **去重整合**: `eda_tools.fsdb_inspect` 重构为 `npi_tools` 执行层的薄封装
+  (消除双份 runner/env/解析逻辑);discover() 的 npi 块合并为单一规范块
+  (kit/importable/ready + kit_exists/pynpi_importable/demo_fsdb 兼容字段);
+  删除 eda_tools 死常量 NPI_ROOT (npi_tools 为唯一 owner)。
+- 与安全加固(shell-free run_simulation/extra_args、tools/list 域过滤、
+  EDA_ENHANCEMENTS 无旗帜表)保持兼容 — 209 tests 全绿。
+
+## 19. 技术手册语料: UG (VCS/Verdi) + UVM 用户指南 (2026-10)
+
+对 UG 手册与 UVM 库目录全面扫描后 (路径经 `CHIP_AGENT_UG_ROOT`/`CHIP_AGENT_UVM_ROOT` 配置), 以
+**章节 / 操作步骤** 为切分单元转化的模型可识别调用语料:
+
+- **UG 索引** (ug_index.py): 128 本 VCS/Verdi 手册 → 34,574 单元
+  (章节 3,910 / 操作步骤 19,915 / 正文 10,749), 哈希 TF-IDF 稀疏向量,
+  附 product/doc/chunk/section/kind 出处;`chip_ug_search` 按
+  product/kind 过滤检索。
+- **UVM 用户指南接入** (本轮): `uvm_users_guide_1.1.pdf` 抽取 + 行级规范化
+  (标题/步骤行前插空行) → **468 单元 (章节 436 / 操作步骤 32)**, product
+  派生与工具枚举扩展 `vcs|verdi|uvm`, 索引 129 本 / 35,042 单元。
+- **转化方式**: 手册操作步骤 ↔ 工具面映射 (如 VCS 编译仿真步骤 →
+  `simulation_run` recipe; FSDB dump 步骤 → run_simulation + NPI 波形族;
+  UVM phase/objection 章节 → uvm_verification_flow + uvm_methodology)。
+- 精准性实测: "objection end of test" → 3.11 Managing End of Test (chapter);
+  "factory override" → steps 单元; 跨产品检索互不串扰。
+
+回归: 215 tests 全绿。
+
+## 20. 绝对路径清理 → 中央 env 配置 (2026-10)
+
+全部站点绝对路径收敛至 `site_paths.py`: 每项均可由环境变量覆盖
+(import 时读取, 与 SKILLS_DIR 惯例一致), 默认值保持现址零配置不变;
+`design_state`/`cli` 默认值改为 `__file__` 派生 (随包迁移);
+local_tools 的 TEMPLATE_ROOT 去重 (eda_tools 唯一来源);
+install_sdk.sh / install_integration.sh 支持 CHIP_MCP_SDK_SRC /
+CHIP_AGENT_PYTHON / CHIP_AGENT_HOME 覆盖。变量清单见 INTEGRATION.md。
+
+回归: tests/test_site_paths.py 2 项 (子进程 env 覆盖 + 默认值保持) — 总计 217 tests。
+
+## 21. 文档与离线依赖包 (2026-10)
+
+- **功能说明书**: `chip_ai_agent/docs/FEATURES.md`(架构/24 工具/48 recipes/
+  五层学习/NPI 层/错误契约/性能基线)
+- **安装配置使用手册**: `chip_ai_agent/docs/INSTALL_CONFIG.md`
+  (在线/离线安装、claude/codex/HTTP 配置、env 变量总表、故障排查)
+- **依赖 wheel 本地化**: `/tools/lsf_api/wheelhouse/`(35 wheels / 28MB,
+  mcp 2.3.0 + mcp-types + numpy + pypdf + pytest 及全传递闭包;scratch venv
+  `--no-index` 实测通过),一键离线安装 `chip_ai_agent/install_offline.sh`

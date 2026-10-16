@@ -1,60 +1,79 @@
-"""Infrastructure tool detection aligned with the vendored infrastructure
-skill: 24 open-source tools (PATH + common roots) and 7 proprietary tools
-(detect only — never install). Emits per-tool setup guidance and the
-wrapper/MCP deployment state.
+"""Infrastructure detection: Synopsys / Cadence / Siemens EDA only.
+
+EDA detection is restricted to Synopsys, Cadence, and Siemens. Non-EDA utilities
+(python/gcc/llvm/debug probes) remain detectable as host infrastructure. Vendor
+tools are detect-only — the agent never installs or licenses them.
 """
 from __future__ import annotations
 
 import shutil
 from pathlib import Path
 
-from .eda_wrappers import WRAPPERS_DIR
+# Non-EDA utilities only. Anything that designs/verifies/implements silicon
+# must come from the three EDA vendors below.
+UTILITIES = [
+    "python3", "bash", "make", "gcc", "clang", "llvm-config", "uv",
+    "gdb", "openocd", "qemu",
+]
 
-OSS_TOOLS = [
-    "verilator", "slang", "surelog", "sv2v", "iverilog", "yosys", "abc",
-    "openroad", "openlane", "klayout", "sta", "sby", "gem5", "bambu-hls",
-    "nextpnr-xilinx", "openFPGALoader", "cocotb", "llvm-config", "gcc",
-    "openocd", "xschem", "gtkwave", "uv", "python3",
+# (vendor, product, candidate binaries) — binaries are what `which` sees.
+VENDOR_TOOLS: list[tuple[str, str, list[str]]] = [
+    ("synopsys", "vcs", ["vcs"]),
+    ("synopsys", "verdi", ["verdi"]),
+    ("synopsys", "spyglass", ["spyglass"]),
+    ("synopsys", "design-compiler", ["dc_shell", "dc_shell-t"]),
+    ("synopsys", "prime-time", ["pt_shell", "pt_shell64"]),
+    ("synopsys", "vc-formal", ["vcf", "vcf_sh"]),
+    ("synopsys", "dftmax", ["tmax"]),
+    ("synopsys", "starrc", ["starrc"]),
+    ("synopsys", "synplify", ["synplify"]),
+    ("cadence", "xcelium", ["xrun", "xmsim"]),
+    ("cadence", "genus", ["genus"]),
+    ("cadence", "innovus", ["innovus"]),
+    ("cadence", "tempus", ["tempus"]),
+    ("cadence", "jaspergold", ["jg"]),
+    ("cadence", "conformal", ["conformal", "lec"]),
+    ("cadence", "voltus", ["voltus"]),
+    ("cadence", "stratus", ["stratus"]),
+    ("siemens", "questa", ["vsim", "questa", "qrun"]),
+    ("siemens", "calibre", ["calibre"]),
+    ("siemens", "tessent", ["tessent"]),
+    ("siemens", "catapult", ["catapult"]),
+    ("siemens", "veloce", ["veloce"]),
 ]
-PROPRIETARY = [
-    ("vcs", ["vcs"]), ("xcelium", ["xrun", "xmsim"]),
-    ("design-compiler", ["dc_shell", "dc_shell-t"]),
-    ("innovus", ["innovus"]), ("questa", ["vsim", "questa", "questasim"]),
-    ("primetime", ["pt_shell", "pt_shell64"]),
-    ("formality", ["formality", "fm_shell"]),
-]
+
+VENDORS = ("synopsys", "cadence", "siemens")
 
 
 def detect_tools() -> dict:
-    oss = {}
-    for t in OSS_TOOLS:
+    utilities = {}
+    for t in UTILITIES:
         path = shutil.which(t)
-        oss[t] = {"available": path is not None, "path": path,
-                  "setup": None if path else f"install or load module providing '{t}'"}
-    prop = {}
-    for name, binaries in PROPRIETARY:
+        utilities[t] = {"available": path is not None, "path": path}
+
+    vendor: dict[str, dict] = {v: {} for v in VENDORS}
+    for v, product, binaries in VENDOR_TOOLS:
         hit = next((b for b in binaries if shutil.which(b)), None)
-        prop[name] = {
+        vendor[v][product] = {
             "available": hit is not None, "binary": hit,
-            "policy": "detect-only (never auto-install)",
-            "setup": None if hit else "module load vendor toolkit",
+            "policy": "detect-only (never auto-install/license)",
+            "setup": None if hit else
+                     f"module load {v} toolkit providing {binaries[0]}",
         }
-    wrappers = sorted(WRAPPERS_DIR.glob("wrap-*.sh"))
-    mcp_configs = sorted((WRAPPERS_DIR.parent / "mcp").glob("mcp-*.json"))
+
+    per_vendor_avail = {v: sum(1 for p in vendor[v].values()
+                               if p["available"]) for v in VENDORS}
     return {
-        "open_source": {k: v for k, v in oss.items() if v["available"]},
-        "open_source_missing": [k for k, v in oss.items() if not v["available"]],
-        "proprietary": {k: v for k, v in prop.items() if v["available"]},
-        "proprietary_missing": [k for k, v in prop.items() if not v["available"]],
-        "wrappers": {"total": len(wrappers),
-                     "executable": sum(1 for w in wrappers
-                                       if w.stat().st_mode & 0o111),
-                     "dir": str(WRAPPERS_DIR)},
-        "mcp_configs": {"total": len(mcp_configs),
-                        "dir": str(WRAPPERS_DIR.parent / "mcp")},
+        "utilities": {k: x for k, x in utilities.items() if x["available"]},
+        "utilities_missing": [k for k, x in utilities.items()
+                              if not x["available"]],
+        "vendors": vendor,
+        "vendors_available": per_vendor_avail,
+        "open_source_eda_policy":
+            "removed by directive — Synopsys/Cadence/Siemens only",
         "summary": (
-            f"oss={sum(v['available'] for v in oss.values())}/{len(oss)} "
-            f"prop={sum(v['available'] for v in prop.values())}/{len(prop)} "
-            f"wrappers={sum(1 for w in wrappers if w.stat().st_mode & 0o111)}"
-            f"/{len(wrappers)} mcp={len(mcp_configs)}"),
+            f"utilities={sum(x['available'] for x in utilities.values())}"
+            f"/{len(utilities)} "
+            + " ".join(f"{v}={per_vendor_avail[v]}/{len(vendor[v])}"
+                       for v in VENDORS)),
     }

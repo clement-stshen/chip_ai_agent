@@ -7,7 +7,7 @@
 #   bash install_integration.sh --all    # + all 123 Synopsys/Verdi skills
 set -euo pipefail
 
-AGENT=/tools/lsf_api/chip_ai_agent
+AGENT="${CHIP_AGENT_HOME:-/tools/lsf_api/chip_ai_agent}"
 SKILLS_SRC=$AGENT/skills
 INSTALL_ALL=0
 [ "${1:-}" = "--all" ] && INSTALL_ALL=1
@@ -15,7 +15,7 @@ INSTALL_ALL=0
 # built-in methodology skills (always installed)
 METHODOLOGY="agentic_debug_workflow analyze_eda_log assertion_feedback_refine \
 check_eda_tools check_uvm_compliance coverage_driven_stimulus generate_testbench \
-open_waveform run_simulation sva_assertion_generation uvm_methodology \
+formal_failure_debug open_waveform run_simulation sva_assertion_generation uvm_methodology \
 vplan_coverage_traceability waveform_causal_diagnosis"
 
 echo "== 1. Claude Code: register MCP server (user scope) =="

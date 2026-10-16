@@ -19,22 +19,12 @@ algorithm_analysis → directive_planning → hls_synthesis → rtl_qc → cosim
 
 ## Tool Options
 
-### Open-Source
-- Bambu HLS (`bambu`)
-- LegUp HLS
-- Calyx / Futil
-- MLIR/CIRCT (`circt-opt`)
-
-### Proprietary
-- Xilinx Vitis HLS (`vitis_hls`)
+### Supported EDA Tools
 - Cadence Stratus (`stratus`)
 - Siemens Catapult (`catapult`)
 
-### MCP Preference
-When invoking open-source tools, follow the execution hierarchy:
-1. **MCP server** — use `bambu` MCP if active in `.claude/settings.json` (lowest context overhead)
-2. **Wrapper script** — `wrap-bambu.sh` (structured JSON with latency/II/area metrics)
-3. **Direct execution** — last resort; Bambu HLS synthesis logs are large across directive iterations
+Use only these supported HLS tools. If neither is available, stop and request
+access to a licensed vendor environment.
 
 ## Loop-Back Rules
 - hls_synthesis FAIL (latency > target)   → directive_planning    (max 4×)

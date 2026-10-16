@@ -21,15 +21,6 @@
 - `tessent -shell -dofile <script.do>` — batch mode avoids GUI overhead; use with structured dofiles
   for repeatable flows.
 
-## PDK / Tool Quirks
-
-- **OpenROAD DFT**: `openroad -dft` scan insertion is functional for simple designs but does not
-  support hierarchical scan chain stitching across IP boundaries — use Yosys DFT plugin or
-  proprietary tools for SoC-level scan.
-- **Yosys `synth -flatten` interaction**: Flattening before scan insertion eliminates hierarchy
-  boundaries that block chain stitching, but significantly increases runtime on large designs.
-  Flatten selectively at the scan boundary level.
-
 ## Notes
 
 - JTAG boundary scan connectivity (`jtag_setup`) should be validated with a BSDL file checker

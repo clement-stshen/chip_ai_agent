@@ -27,7 +27,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 DEFAULT_STATE_PATH = os.environ.get(
-    "CHIP_DESIGN_STATE", "/tools/lsf_api/chip_ai_agent/design_state.json")
+    "CHIP_DESIGN_STATE", str(Path(__file__).parent / "design_state.json"))
 
 FIX_STATUSES = ("open", "claimed", "fixed", "abandoned")
 CREATORS = ("verification-orchestrator", "formal-orchestrator", "chip_agent")

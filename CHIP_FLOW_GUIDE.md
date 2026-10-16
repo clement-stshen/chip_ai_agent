@@ -24,7 +24,7 @@
 | 阶段 | 架构探索 → RTL 编码 → lint → CDC/RDC → UVM 验证 → formal → synth-check → **RTL freeze** |
 | 输出 | 冻结 RTL、验证 signoff 报告、CDC waiver、lint-clean 报告、SVA、草稿 SDC |
 | Handoff 判据 | lint=0（waived 已记录）· CDC unwaived=0 · 功能覆盖=100% · 回归失败=0 · P0 性质未证明=0 · synth-check WNS>=-0.5ns 且面积<=120% 估算 |
-| 工具 | OSS: verilator/slang/surelog/iverilog/cocotb/sby · 商用: VCS/Xcelium/Questa/SpyGlass/JasperGold/VC Formal |
+| 工具 | Synopsys: VCS/SpyGlass/VC Formal · Cadence: Xcelium/JasperGold · Siemens: Questa |
 | 经典坑 | 验证未闭环交综合（bug 流到 GDS 回改代价x10）；CDC 只查不管 waiver；latch 推断/复位风格不统一；不做 synth-check 预算后爆 |
 
 ## (2) 综合（RTL → 门级网表）
@@ -35,7 +35,7 @@
 | 阶段 | 约束建立 → compile explore → compile final → DFT 扫描插入 → netlist QC → **LEC(RTL==netlist)** → 综合 signoff |
 | 输出 | 门级网表、mapped SDC、扫描链、时序/面积/功耗 QoR、LEC 等价证明 |
 | Handoff 判据 | WNS>=0（或约定的负 slack PD 余量）· LEC unmatched=0 · unmapped cells=0 · 面积<=预算 · scan DRC=0 |
-| 工具 | OSS: yosys/abc/surelog · 商用: DC/Genus/Fusion Compiler、TetraMAX、Tessent、Formality/Conformal |
+| 工具 | Synopsys: Design Compiler/Fusion Compiler/TetraMAX/Formality · Cadence: Genus/Conformal · Siemens: Tessent |
 | 经典坑 | SDC 不完整/时钟未定义（优化错方向到 STA 才发现）；PD 线负载余量没预留（被迫回 RTL 加流水）；DFT 插入滞后；LEC 漏检时钟/复位语义 |
 
 ## (3) 后端 PD（网表 → GDSII）
@@ -46,7 +46,7 @@
 | 阶段 | floorplan(die/core/IO/宏单元/电源网络) → placement → CTS → routing → timing/power/area 优化 → ECO 循环 → **GDS out** |
 | 输出 | GDSII、DEF、post-route netlist、**SPEF**、CTS 报告、DRC-clean 版图、IR/EM 报告 |
 | Handoff 判据 | post-route setup WNS>=0 全角 · hold WNS>=0 全角 · DRC=0 · LVS clean · antenna=0 · 利用率<=85% · IR 在预算内 |
-| 工具 | OSS: openroad/librelane/klayout · 商用: Innovus/ICC2、Calibre、RedHawk/Voltus |
+| 工具 | Synopsys: IC Compiler 2/PrimeTime/StarRC · Cadence: Innovus/Voltus · Siemens: Aprisa/Calibre |
 | 经典坑 | floorplan 挤占优化空间→拥塞→时序死环；CTS 前不做 skew/latency 预算→hold 爆炸；**ECO>2% cells 仍硬修**（应升级回综合）；SPEF 缺失/过时→signoff 虚假 |
 
 ## (4) Signoff（多角验证 + 签核 + 流片审查）
@@ -57,7 +57,7 @@
 | 阶段 | MCMM STA(setup/hold) → exceptions 审查 → DRC/LVS/ANT → 功耗/EM/IR → 门级等价(netlist==GDS) → ATPG/scan → **tape-out review** |
 | 输出 | 签核 GDSII、全角 STA 报告、DRC/LVS waiver 集、ATPG pattern、tape-out checklist |
 | Handoff 判据 | setup/hold WNS/TNS 全 signoff 角/模达标 · DRC/LVS/ANT clean（或 foundry 接受 waiver）· IR/EM 限额内 · LEC clean · ATPG>=99% · **全部 gate measured-PASS** |
-| 工具 | OSS: OpenSTA/openroad/klayout · 商用: PrimeTime(PX)/Tempus、Calibre、TetraMAX/Modus、RedHawk/Voltus |
+| 工具 | Synopsys: PrimeTime/PrimePower/TetraMAX · Cadence: Tempus/Modus/Voltus · Siemens: Calibre/Tessent |
 | 经典坑 | 只签单角/单模；false-path 滥用掩盖真实路径；waiver 无 traceability 被 foundry 退回；**把 NOT RUN 的 gate 当 PASS 上报**（Reporting Contract 红线） |
 
 ## 跨相位反馈环（迭代的真实原因）

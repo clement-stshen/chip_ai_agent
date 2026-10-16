@@ -81,7 +81,7 @@ sign-off stage passes all criteria; escalated, abandoned, and partial runs stay 
 | formal       | `proved`, `failed`, `unknown`                                         |
 | fpga         | `lut_count`, `fmax_mhz`, `timing_met`                                |
 | hls          | `latency_cycles`, `dsp_count`, `ii_achieved`                         |
-| infrastructure | `tools_detected`, `tools_missing`, `wrappers_deployed`, `mcp_servers_configured`, `module_system`, `tool_versions` |
+| infrastructure | `vendor_tools_detected`, `utilities_detected`, `module_system`, `tool_versions` |
 | memory-ip    | `memory_instances`, `total_memory_area_um2`, `worst_access_time_ns`, `view_qa_errors`, `projected_repair_yield_pct` |
 | pd           | `wns_ns`, `drc_violations`, `lvs_errors`, `gds_area_um2`            |
 | rtl-design   | `lint_errors`, `cdc_violations`, `synth_check_pass`                  |
@@ -212,8 +212,8 @@ python3 tools/qor_trends.py --design aes_core --plot --output aes_core_qor.png
 # Compare area/timing across sky130 vs gf180mcu
 python3 tools/qor_trends.py --design aes_core --domain synthesis --group-by pdk
 
-# Compare Yosys vs DC for the same design on sky130, with a grouped chart
-python3 tools/qor_trends.py --design aes_core --pdk sky130 --group-by tool --plot
+# Compare approved vendor synthesis runs for the same design, grouped by tool
+python3 tools/qor_trends.py --design aes_core --group-by tool --plot
 ```
 
 Regression alerts fire automatically when a metric moves in the wrong direction between

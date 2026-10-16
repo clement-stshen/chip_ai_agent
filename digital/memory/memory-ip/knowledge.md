@@ -19,27 +19,12 @@
   hard defects found at test. Counting ECC toward the post-repair yield target overstates yield
   and is discovered only at wafer sort. Keep the two calculations separate.
 
-## Successful Tool Flags
+## Vendor Tool Notes
 
-- `cacti -infile cache.cfg` with `-cache_size`, `-block_size`, `-associativity` — use for the
-  first-pass area/power estimate at `memory_requirements` before committing to a compiler run;
-  treat its output as an uncertainty band, not a point value.
-- `sta -exit lib_check.tcl` running `read_liberty <macro>.lib` per corner — catches missing
-  timing arcs and malformed Liberty far faster than waiting for a full STA run.
-- `klayout -b -r gds_qa.py -rd gds=<macro>.gds` — batch GDS QA for boundary and obstruction-layer
-  checks; scriptable per-instance across the whole inventory.
-- `magic -dnull -noconsole -rcfile <pdk>.magicrc` with `drc check` / `extract` — macro-level
-  DRC/LVS for OpenRAM-generated layout. Skip for vendor pre-hardened macros.
-
-## PDK / Tool Quirks
-
-- **OpenRAM vs vendor compilers**: OpenRAM generates a complete view set but supports a narrower
-  configuration space (limited mux factors and port arrangements). Check that the target
-  configuration is generatable before treating it as a candidate — an ungeneratable config that
-  looks good on paper wastes a full selection round.
-- **sky130 pre-hardened SRAM macros**: The sky130 macro set offers fixed depth/width combinations
-  only. Requirements that fall between the available sizes must round up, so capture the resulting
-  area over-provisioning explicitly at `macro_selection` rather than discovering it at `pd`.
+- Verify that the selected licensed compiler supports the required depth, width, port arrangement,
+  and PVT corners before treating a macro as a candidate.
+- Use vendor qualification reports for pre-hardened macros and record any fixed-size area
+  over-provisioning at `macro_selection`.
 
 ## Notes
 

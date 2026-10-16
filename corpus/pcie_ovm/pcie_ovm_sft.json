@@ -1,0 +1,117 @@
+[
+  {
+    "instruction": "Explain the difference between svt_pcie_device_agent and svt_pcie_agent in the Synopsys PCIe OVM VIP.",
+    "input": "",
+    "output": "svt_pcie_device_agent is the highest-level OVM agent that encapsulates the entire PCIe device. It contains the application layer components (Driver, Requester, Target) and an instance of svt_pcie_agent. svt_pcie_agent encapsulates the layered protocol stack: Transaction Layer (svt_pcie_tl), Data Link Layer (svt_pcie_dl), and Physical Layer (svt_pcie_pl). In short, the device agent includes the applications and the PCIe agent; the PCIe agent is the protocol stack itself."
+  },
+  {
+    "instruction": "Write a SystemVerilog OVM configuration class for a PCIe Root Complex using the Synopsys PCIe VIP. Set the device as root, use PCIe spec version 2.1, configure link width to 1, target speed to 2.5 GT/s, and skip polling active.",
+    "input": "",
+    "output": "class pcie_shared_cfg extends ovm_object;\n  rand svt_pcie_device_configuration root_cfg;\n\n  function new(string name = \"pcie_shared_cfg\");\n    super.new(name);\n    this.root_cfg = new(\"root_cfg\");\n    root_cfg.device_is_root = 1;\n    root_cfg.pcie_spec_ver = svt_pcie_device_configuration::PCIE_SPEC_VER_2_1;\n    root_cfg.pcie_cfg.pl_cfg.link_width = 1;\n    root_cfg.pcie_cfg.pl_cfg.target_speed = 'SVT_PCIE_SPEED_2_5_G;\n    root_cfg.pcie_cfg.pl_cfg.skip_polling_active = 1;\n  endfunction : new\nendclass : pcie_shared_cfg"
+  },
+  {
+    "instruction": "Describe the steps to perform a mid-simulation reset of the Synopsys PCIe VIP using svt_pcie_device_virtual_reset_sequence.",
+    "input": "",
+    "output": "The mid-sim reset is performed with a combination of hot plug control and application resets. Follow these steps:\n1. Unplug the VIP from the bus using svt_pcie_pl_service_request_hot_plug_mode_sequence with HOTPLUG_UNPLUG.\n2. Assert reset on the DUT.\n3. Reset the applications (all, some, or none - user choice) using svt_pcie_*_reset_app_sequence.\n4. Re-enable the VIP on the bus with HOTPLUG_DETECT.\n5. De-assert reset on the DUT.\n6. Continue the test, monitoring for LTSSM state changes. Alternatively, use svt_pcie_device_virtual_reset_sequence which wraps the hot plug and reset calls."
+  },
+  {
+    "instruction": "What is the DEFAULT_ROUTE_AT_APPL_ID parameter in the PCIe VIP Transaction Layer, and what is its default value?",
+    "input": "",
+    "output": "DEFAULT_ROUTE_AT_APPL_ID is a compile-time Verilog parameter in the Transaction Layer. It specifies the default Application ID to route Address Translation requests to. Its type is Integer, range is 0 to large value, and the default value is 0."
+  },
+  {
+    "instruction": "Explain the role of p_sequencer in the PCIe OVM VIP and show how it is declared.",
+    "input": "",
+    "output": "In the PCIe OVM VIP, each component in the agent has its own service sequencer. All SVT sequences are derived from ovm_sequence. Sequences or individual sequence items are executed on the appropriate sequencer. A p_sequencer is instantiated with a macro in the top sequence as follows:\n\novm_declare_p_sequencer(svt_pcie_device_system_virtual_sequencer)\n\nThe p_sequencer provides access to the virtual sequencer hierarchy, including mac_virt_seqr (containing tl_seqr, dl_seqr, pl_seqr), driver_seqr[int], io_target_seqr, target_seqr[int], requester_seqr, and mem_target_seqr."
+  },
+  {
+    "instruction": "How do you demote an OVM_ERROR message to OVM_INFO in the Synopsys PCIe VIP?",
+    "input": "",
+    "output": "You can demote an ERROR message to a NOTE/OVM_INFO message using the set_default_fail_effects method on the err_check object. For example, to demote the dl_receive_nullified_tlp_lcrc check:\n\nenv.root.err_check.set_default_fail_effects(\"AC_DL\", \"\", svt_err_check_stats::NOTE, \"dl_receive_nullified_tlp_lcrc$\");\n\nThe method takes four arguments: group, sub_group, effect, and message ID regex. The effect argument is of type svt_err_check_stats::fail_effect_enum, with values including IGNORE, VERBOSE, DEBUG, NOTE, WARNING, ERROR, and EXPECTED."
+  },
+  {
+    "instruction": "Write a SystemVerilog OVM sequence that enables the PCIe link using the Synopsys PCIe VIP DL and PL service sequences.",
+    "input": "",
+    "output": "class pcie_traffic_sequence extends svt_pcie_device_system_virtual_base_sequence;\n\n  task body();\n    svt_pcie_dl_service_set_link_en_sequence link_en_seq;\n    svt_pcie_pl_phy_service_set_phy_en_sequence phy_en_seq;\n\n    `ovm_do_on_with(link_en_seq, p_sequencer.root_virt_seqr.mac_virt_seqr.dl_seqr, {link_en_seq.enable == 1'b1;})\n  endtask : body\nendclass : pcie_traffic_sequence"
+  },
+  {
+    "instruction": "How do you set up the DL Monitor in the Synopsys PCIe VIP to observe sent and received TLPs?",
+    "input": "",
+    "output": "To set up the DL Monitor:\n1. Identify the analysis port on the DL monitor: svt_pcie_dl::sent_tlp_observed_port and svt_pcie_dl::received_tlp_observed_port.\n2. Enable the analysis ports by setting the following configuration variables:\n   root_cfg.pcie_cfg.dl_cfg.sent_tlp_interface_mode = 1;\n   root_cfg.pcie_cfg.dl_cfg.received_tlp_interface_mode = 1;\n3. Create an ovm_subscriber extension to handle the transactions.\n4. In the build phase, create your subscriber instance.\n5. In the connect phase, connect the DL monitor ports to your subscriber:\n   env.root.pcie_agent.dl.sent_tlp_observed_port.connect(sent_tlp_subscriber.analysis_export);\n   env.root.pcie_agent.dl.received_tlp_observed_port.connect(rcvd_tlp_subscriber.analysis_export);\n6. When a TLP is sent or received, the write() method of your subscriber will be called."
+  },
+  {
+    "instruction": "Write a SystemVerilog OVM test that sets up initial TX credits for the PCIe VIP Transaction Layer.",
+    "input": "",
+    "output": "class myTest extends ovm_test;\n\n  virtual function void build_phase(ovm_phase phase);\n    super.build_phase(phase);\n\n    // Setup Initial TX Credits\n    cust_cfg.root_cfg.pcie_cfg.tl_cfg.init_p_hdr_tx_credits[0] = 104;\n    cust_cfg.root_cfg.pcie_cfg.tl_cfg.init_p_data_tx_credits[0] = 1020;\n    cust_cfg.root_cfg.pcie_cfg.tl_cfg.init_np_hdr_tx_credits[0] = 105;\n    cust_cfg.root_cfg.pcie_cfg.tl_cfg.init_np_data_tx_credits[0] = 1021;\n    cust_cfg.root_cfg.pcie_cfg.tl_cfg.init_cpl_hdr_tx_credits[0] = 106;\n    cust_cfg.root_cfg.pcie_cfg.tl_cfg.init_cpl_data_tx_credits[0] = 1022;\n  endfunction\nendclass"
+  },
+  {
+    "instruction": "How do you configure the PCIe VIP for Gen3 support in the Synopsys PCIe OVM VIP?",
+    "input": "",
+    "output": "To enable Gen3 features:\n1. Define the SVT_PCIE_ENABLE_GEN3 macro on the command line for VCS invocation:\n   vcs +define+SVT_PCIE_ENABLE_GEN3 other switches\n2. Set the pcie_spec_ver attribute in svt_pcie_device_configuration to PCIE_SPEC_VER_3_0:\n   svt_pcie_device_configuration::pcie_spec_ver = svt_pcie_device_configuration::PCIE_SPEC_VER_3_0;\n3. When G3 is being used, the VIP will consume the VIP-PCIE-G3-OPT-SVT license key."
+  },
+  {
+    "instruction": "Write a SystemVerilog OVM sequence that performs a memory write transaction using the PCIe VIP Driver Application.",
+    "input": "",
+    "output": "class my_pcie_test extends ovm_test;\n  `ovm_component_utils(my_pcie_test)\n\n  task run_phase(ovm_phase phase);\n    svt_pcie_driver_app_transaction_mem_write_sequence mem_wr_seq;\n\n    mem_wr_seq = new();\n    mem_wr_seq.randomize with {\n      address == 'h8000;\n      length == 2;\n      first_dw_be == 0;\n      last_dw_be == 0;\n      traffic_class == 0;\n      address_translation == 2'b00;\n      foreach(payload[i]) payload[i] == 'hc0de_0000 + i;\n    };\n    mem_wr_seq.start(env.root.driver_transaction_seqr[0]);\n  endtask\nendclass"
+  },
+  {
+    "instruction": "Explain how to enable functional coverage in the Synopsys PCIe VIP and what each bit of enable_cov controls.",
+    "input": "",
+    "output": "To enable functional coverage in the Synopsys PCIe VIP:\n1. Set the enable_cov variable in svt_pcie_configuration:\n   enable_cov = 6'b111111; // Bitwise enable\n2. Set the OVM_HOME environment variable to point to the simulator's OVM package files.\n3. Configure the following defines:\n   +define+SVT_OVM_TECHNOLOGY\n   +define+SVT_PCIE_ENABLE_COMMON_COV\n\nThe enable_cov variable is a 6-bit vector:\n- enable_cov[0]: enables PIPE functional coverage\n- enable_cov[1]: enables functional coverage in PL Layer\n- enable_cov[2]: enables functional coverage in DL Layer\n- enable_cov[3]: enables functional coverage in TL Layer\n- enable_cov[4]: enables LTSSM functional coverage\n- enable_cov[5]: enables 8b/10b symbol functional coverage (only valid for SERDES interface)"
+  },
+  {
+    "instruction": "How do you configure the PCIe VIP for lane reversal with different link width configurations?",
+    "input": "",
+    "output": "To configure lane reversal with different link widths:\n1. Set MAX_SUPPORTED_DUT_LINK_WIDTH = <user_link_width>\n2. Set svt_pcie_pl_configuration attribute lane_reversal_mode to FORCED.\n3. Call the set_link_width_values function for changing the link width.\n   The function accepts three inputs:\n   - link_width_value (svt_pcie_pl_configuration::link_width_value)\n   - supported_link_width_vector_value (svt_pcie_pl_configuration::supported_link_width_vector_value)\n   - expected_link_width_value (svt_pcie_pl_configuration::expected_link_width_value)\n\nThe link_width_value must be same as DUT link width value.\nThe supported_link_width_vector_value must have all the possible link widths a VIP can support from 1 up to link_width_value value.\nThe expected_link_width_value must be same as supported link width vector's link width value.\n\nExample: MAX_SUPPORTED_DUT_LINK_WIDTH = 16, set_link_width_values(16, 32'h03, 2) for VIP. The link up happens at X2 on [Lane 3, Lane 2]."
+  },
+  {
+    "instruction": "Write a SystemVerilog OVM test that uses the Ordering Application in the PCIe VIP.",
+    "input": "",
+    "output": "svt_pcie_ordering_app_configuration ordering_app_cfg = new();\n\n// Step 1: Create configuration object and set desired values.\n// Step 2: Create the Ordering application in build_phase().\nordering_app = svt_pcie_ordering_app::type_id::create(\"ordering_app\", this);\n\n// Step 3: Set the configuration object in ovm_config_db.\novm_config_db#(svt_pcie_ordering_app_configuration)::set(this, \"ordering_app\", \"cfg\", ordering_app_cfg);\n\n// Step 4: Create a new sequencer instance of type svt_pcie_tlp_sequencer.\novm_config_db#(svt_pcie_tl_configuration)::set(this, \"ordering_app_seqr\", \"cfg\", dut_cfg.pcie_cfg.tl_cfg);\nordering_app_seqr = svt_pcie_tlp_sequencer::type_id::create(\"ordering_app_seqr\", this);\n\n// Step 5: In connect_phase(), connect the ordering app with the sequencer.\nordering_app.tx_tlp_in_port.connect(ordering_app_seqr.seq_item_export);\n\n// Step 6: Set the reference of svt_pcie_tl_status in ovm_config_db.\novm_config_db#(svt_pcie_tl_status)::set(this, \"ordering_app\", \"tl_status\", <vip_agent>.pcie_agent.pcie_status.tl_status);\n\n// Step 7: Connect rx_tlp_in_export with an analysis port.\n<analysis_port>.connect(ordering_app.rx_tlp_in_export);\n\n// Step 8: Optionally connect tx_tlp_out_port with TLM blocking_put_imp of a downstream component.\nordering_app.tx_tlp_out_port.connect(<dut_driver_component>.<name_of_put_imp_port>);"
+  },
+  {
+    "instruction": "Explain how to use the Global Shadow Memory in the Synopsys PCIe VIP for self-checking.",
+    "input": "",
+    "output": "The Global Shadow Memory provides a database of the DUT's PCI Express address space for Write and Read transaction checking. It captures Memory Writes, Atomic Operations, Memory Reads, and Configuration Writes. It does not capture Error Injections, Poisoned Atomic Ops, badly formed TLPs, or Type 1 Cfg requests.\n\nTo use it:\n1. Instantiate the global shadow at the top:\n   `define EXPERTIO_PCIESVC_GLOBAL_SHADOW_PATH test_top.global_shadow0\n   pciesvc_global_shadow #(DISPLAY_NAME(\"global_shadow0.\")) global_shadow0();\n\n2. Use svt_pcie_global_shadow_service to perform operations like ADD_MEM_RANGE, WRITE_MEM, READ_MEM, WRITE_CFG, READ_CFG.\n\n3. For random memory read using Global Shadow:\n   svt_pcie_global_shadow_service_random_rd_wr_sequence rand_rd_wr_seq;\n   `ovm_config_db(mem_range_seq, p_sequencer.endpoint_virt_seqr.global_shadow, {rand_rd_wr_seq == svt_pcie_global_shadow_service::READ; rand_rd_wr_seq.s == 5; });\n\n4. To disable the global shadow if not instantiated:\n   <device_cfg>.driver_cfg[0].enable_tx_tlp_reporting = 0\n   <device_cfg>.driver_cfg[0].enable_shadow_memory_checking = 0\n   <device_cfg>.requester_cfg.enable_tx_tlp_reporting = 0\n   <device_cfg>.requester_cfg.enable_shadow_memory_checking = 0\n   <device_cfg>.pcie_cfg.dl_cfg.enable_tx_tlp_reporting = 0\n   <device_cfg>.pcie_cfg.tl_cfg.enable_shadow_cfg_lookup = 0"
+  },
+  {
+    "instruction": "How do you control completion timing and size using callbacks in the Synopsys PCIe VIP?",
+    "input": "",
+    "output": "You can control completion timing and size using callbacks in the svt_pcie_target_app_callback class:\n\n1. To control delay for the current completion, use the completion_delay_in_ns attribute in the svt_pcie_tlp class. This is used only with pre_tx_tlp_put callback.\n\n2. To control delay for the next completion, use the next_completion_delay_in_ns attribute in the svt_pcie_tlp class. This is used with post_rx_tlp_get or pre_tx_tlp_put callbacks.\n\n3. To control size for the next completion, use the next_completion_size_in_rcb attribute. This is used with post_rx_tlp_get or pre_tx_tlp_put callbacks.\n\nExample:\nvirtual function void pre_tx_tlp_put(svt_pcie_target_app target_app, svt_pcie_tlp transaction, ref bit drop);\n  transaction.next_completion_delay_in_ns = 100;\n  transaction.next_completion_size_in_rcb = 1;\nendfunction"
+  },
+  {
+    "instruction": "How do you enable Functional Coverage in the Synopsys PCIe VIP?",
+    "input": "",
+    "output": "To enable functional coverage, perform the following steps:\n1. Set the following variable in the svt_pcie_configuration class:\n   enable_cov = 6'b111111; // Bitwise enable\n2. Set the OVM_HOME environment variable to point to the simulator's OVM package files:\n   setenv OVM_HOME ../<path_to_vcs_or_vcsmx_installation>/vcs_version/etc/ovm-2.1.2\n3. Configure the following defines:\n   +define+SVT_OVM_TECHNOLOGY\n   +define+SVT_PCIE_ENABLE_COMMON_COV\n\nThe configuration variable enable_cov is a 6-bit vector:\n- enable_cov[0]: enables PIPE functional coverage\n- enable_cov[1]: enables functional coverage in PL Layer\n- enable_cov[2]: enables functional coverage in DL Layer\n- enable_cov[3]: enables functional coverage in TL Layer\n- enable_cov[4]: enables LTSSM functional coverage\n- enable_cov[5]: enables 8b/10b symbol functional coverage (only valid for SERDES interface)"
+  },
+  {
+    "instruction": "Explain the Class Structure and Callbacks for Functional Coverage in the Synopsys PCIe VIP.",
+    "input": "",
+    "output": "The classes described are unencrypted and can be viewed in Include/pciesvc_coverage_pkg.sv.\n\nAll of the functional coverage classes have an abstract base class (ending is _base) which contains the variables which are to be used by coverage groups as well as pure virtual declarations for Update() and Sample() routines. The Update() callback routines are used to unpack data passed in the callback function into class variables. The Sample() callbacks are used to trigger the coverage groups.\n\nDerived from each base class is a data class where the implementation for all of the Update() tasks is defined. If you do not want to use any of the provided functional coverage, you can extend your own coverage class from the data class.\n\nA functional coverage class is extended from the data class, and in the functional coverage class there is an implementation of the Sample() callbacks along with a number of different functional coverage groups. If you want to use some or all of the provided functional coverage but modify or add to the existing coverage, then you should extend from the functional coverage classes. Individual covergroups and/or coverpoints can be turned off/adjusted by using standard SystemVerilog syntax, such as option.weight.\n\nIf you want to modify the Update() implementation in the _data class, it is recommended to call super.Update() in the child implementation to ensure that the data is unpacked correctly."
+  },
+  {
+    "instruction": "How do you override the Default Coverage Class in the Synopsys PCIe VIP?",
+    "input": "",
+    "output": "Each layer in the VIP protocol stack has a pointer to the corresponding coverage class. The Physical Layer has a pointer to both phy coverage as well as pipe coverage. Any class which replaces the default coverage class must have the _data class for the appropriate layer as its parent.\n\nOverriding With OVM:\nOVM users should override the default coverage class by using the factory to replace the _data class with the desired class:\nfactory.set_type_override_by_type(\n  pciesvc_coverage_pkg::link_fc_data::get_type(),\n  a_different_coverage_class::get_type(),\n  1\n);\n\nOverriding for SystemVerilog Users:\nThere is an override function for each of the four types of coverage classes: tl, link, phy and pipe. The transaction override function is in the Transaction Layer, the link override function is in the Data Link Layer, and the phy and pipe functions are in the Physical Layer. You must first instantiate the class that you want to use for coverage and then call new() on it. Once the class has been constructed the object handle is passed through the override function call:\n- SetTransactionCoverageClass: SVC_PATH.port0.tl0\n- SetLinkCoverageClass: SVC_PATH.port0.dl0\n- SetPhyCoverageClass: SVC_PATH.port0.phy0\n- SetPipeCoverageClass: SVC_PATH.port0.phy0"
+  },
+  {
+    "instruction": "Explain Transaction Layer Functional Coverage in the Synopsys PCIe VIP.",
+    "input": "",
+    "output": "All methods and variables are declared in pciesvc_tl_fc_base, which is located in Include/pciesvc_coverage_pkg.sv. Implementation of the Update() functions is in the pciesvc_tl_fc_data class. The covergroups and implementation of the sample() functions are provided in the class pciesvc_tl_fc_coverage.\n\nCovergroups include:\n- cg_tx_tc_vc_mapping: with coverpoints cp_tc (tc_0 through tc_7) and cp_vc (vc_0 through vc_7), plus cp_tc_cross_vc (all TC and VC combinations).\n- cg_rx_tc_vc_mapping: with coverpoints cp_tc (tc_0 through tc_7) and cp_vc (vc_0 through vc_7), plus cp_tc_cross_vc (all TC and VC combinations)."
+  },
+  {
+    "instruction": "List the Transaction Layer functional coverage callbacks in the Synopsys PCIe VIP.",
+    "input": "",
+    "output": "Transaction Layer functional coverage class callbacks:\n- UpdateTxTcVcMapping: Called every time the Transaction Layer passes a packet to the link. Arguments: tx_tc (I, Traffic class of the transmitted TLP), tx_vc (I, VC which maps to the traffic class of the transmitted TLP).\n- UpdateRxTcVcMapping: Called every time the Transaction Layer receives a packet from the DL. Arguments: rx_tc (I, Traffic class of the received TLP), rx_vc (I, VC which maps to the traffic class of the received TLP).\n- SampleTxTcVcMapping: Called immediately following UpdateTxTcVcMapping(). No arguments.\n- SampleRxTcVcMapping: Called immediately following UpdateRxTcVcMapping(). No arguments."
+  },
+  {
+    "instruction": "Explain Data Link Layer Functional Coverage in the Synopsys PCIe VIP.",
+    "input": "",
+    "output": "All methods and class variables are declared in pciesvc_link_fc_base, which is located in Include/pciesvc_coverage_pkg.sv. Implementation of the Update() functions is in the pciesvc_link_fc_data class. The covergroups and implementation of the sample() functions are provided in the pciesvc_link_fc_coverage class.\n\nNote that for the TLP and DLLP Update tasks, all fields in the argument list may not be valid depending on the type of packet. For example, the message_code field is valid only for message TLPs, and should be disregarded on other TLPs. The provided covergroups cover most aspects of TLP/DLLP transmission, but not all TLP fields have a coverpoint. However, all TLP fields are updated during the UpdateTxTLP/UpdateRxTLP callbacks so that users can create their own coverage if necessary.\n\nKey covergroups:\n- cg_tx_dllp: covers DLLP types (ACK/NAK, PM, Vendor Specific, Flow Control for VC0-VC7), header FC values, data FC values, hdr cross FC per VC, data cross FC per VC, DLLP error injections.\n- cg_rx_dllp: covers received DLLP types and FC values.\n- cg_tx_tlp: covers TLP types (mem requests, mem read locked, IO, cfg type0/type1, msg, cpl, cpl locked, atomic ops), traffic class, transaction hint, TLP digest, error poison, address translation, length, attribute bits (ID order, relaxed order, no snoop), first/last DW BE, processing hint, msg codes, completion status, sequence number, EI codes.\n- cg_rx_tlp: covers received TLP types.\n- cg_tx_ipg / cg_rx_ipg: covers inter-packet gap."
+  },
+  {
+    "instruction": "List the Data Link Layer functional coverage callbacks in the Synopsys PCIe VIP.",
+    "input": "",
+    "output": "Data Link Layer callbacks:\n- UpdateTxDLLP: Called every time the link finishes sending a DLLP. Arguments: dllp[63:0] (I, 64-bit array containing DLLP data), ei_code[31:0] (I, Error injection code associated with the DLLP).\n- UpdateRxDLLP: Called every time the link received a DLLP. Arguments: dllp[63:0] (I), rx_status[31:0] (I, Status of the received DLLP).\n- UpdateTxTLP: Called after the link sends the last byte of a TLP. Arguments include tlp_fmt, tlp_type, tc, th, td, ep, attr_id_order, attr_relax_order, attr_no_snoop, at, length, ecrc, lcrc, sequence_num, requester_id, tag, first_dw_be, last_dw_be, address, ph, bus_num, device_num, function_num, register_num, message_code, message_dword2, message_dword3, completer_id, completion_status, bcm, byte_count, lower_address, steering_tag, payload_data, ei_code.\n- UpdateRxTLP: Called after the link receives the last byte of a TLP. Similar arguments to UpdateTxTLP.\n- UpdateTxIpg: Called every time a new packet starts transmission. Argument: ipg (I, Number of bytes between current packet and previously transmitted packet).\n- UpdateRxIpg: Called on the start of a new received packet. Argument: ipg (I).\n- UpdateDLCMSMState: Called every time the DLCMSM changes state. Argument: state[31:0] (I).\n- UpdateFCState: Called every time"
+  }
+]

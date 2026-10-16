@@ -1,8 +1,9 @@
 # DVCon 2025–2026 AI 验证趋势分析与本 Agent 的迭代映射
 
-> 数据来源说明: 本次联网检索 API 配额耗尽(429), 无法实时抓取 DVCon 官网论文列表。
-> 以下 2025 年内容基于公开已知的 DVCon US 2025 议题方向归纳; 2026 年条目为
-> ⚠️ **推断性趋势**(基于 2025 方向的延续与工业界公开演讲线索), 待联网恢复后复核。
+> 数据来源说明: 2026-10 **联网复核完成** — 2025/2026 论文语料已按
+> 段落/方法描述/结论切分并转化为模型可识别调用的 recipe/skill,
+> 见 **`DVCON_2025_2026_CORPUS.md`**(本文件的实证校正版, 含出处链接与
+> 调用映射表)。第 2 节由推断趋势更新为实证结论。
 
 ## 1. DVCon 2025 公开主题归纳
 
@@ -15,17 +16,23 @@
 | RAL/寄存器测试自动化 | 寄存器模型驱动的验证计划条目生成 | 可扩 recipe(暂列 backlog) |
 | 形式化 + AI (功能安全) | SVA 辅助生成用于 ISO 26262 场景, 要求可审计 | SQLite RunReport 持久化已满足可审计基线 |
 
-## 2. ⚠️ 2026 推断趋势
+## 2. 2026 实证结论 (联网复核, 详见 DVCON_2025_2026_CORPUS.md)
 
-1. **Agentic loop 以编译/仿真/覆盖率为 reward**: planner 不再单轮, 而是把
-   "上次运行结果"作为下一轮规划输入 → 已实现 `ConversationalPlanner.observe()`
-   + `LLMPlanner.refine()`(plan-critique-retry)。
-2. **vplan 条目 → 测试 → 覆盖回链**: 验证计划条目自动追踪到覆盖率数据;
-   本 Agent 的 `runs`/`steps` SQLite 表是回链的数据底座。
-3. **LLM 阅读波形/日志做因果诊断**: 从"找 force 语句"升级到"为什么这条总线
-   在该时刻挂死"; `driver_trace`/`x_prop_debug` 配方已按此组织取证链。
-4. **安全场景要求可审计确定性 AI**: 每一步技能调用必须可复现、可回放 →
-   `report_store` 已记录全部步骤; 可加 hash 链(后续迭代)。
+1. **因果图驱动的根因分析成为共识** (FVDebug, DVCon US 2026 最佳论文第 3):
+   显式因果边使 Quality@Best 0.474→0.956, Pass@1 71.1% →
+   已落地 `fv_failure_debug` recipe + `formal_failure_debug` SKILL.md。
+2. **Agentic 反思循环 > 模型能力** (Saarthi 2025 实证: GPT-3.5+agentic 超
+   GPT-4 零样本; 首代自主成功率 ~40-50%) →
+   `agentic_formal_flow` recipe; 本 Agent 的 ConversationalPlanner/observe
+   即同构闭环。
+3. **双记忆 RAG 按项目成熟度动态加权** (Samsung Spec-RAG: 34 周/398 缺陷
+   27% 调试时间缩减, Type-1 错误最高 75%) →
+   `spec_rag_verification` recipe; 本 Agent 域记忆+运行库即 STM/LTM 底座。
+4. **失败签名聚类缩减回归 TAT 12-43%** (DVCon EU 2025 #127) →
+   `regression_triage` recipe; skill_failure_strategies 矩阵已实现签名底座。
+5. **2026 词汇表**: Spec-RAG / Knowledge Graph / Multi-Agent / MCP /
+   Agentic Sign-off / Autonomous Regression —— 全自动签核仍不可行,
+   人工门禁 + 可审计是共同底线 (与本 Agent 的 fix_request 状态机一致)。
 
 ## 3. 本轮已落地的代码迭代
 

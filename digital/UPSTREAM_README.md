@@ -49,7 +49,7 @@ For the install script, selective marketplace install, other AI assistants
 | `chip-design-compiler` | Compiler Toolchain | Build LLVM/GCC backend, assembler, linker, runtime for custom ISA |
 | `chip-design-firmware` | Embedded Firmware | BSP, HAL drivers, RTOS integration, firmware validation |
 | `chip-design-fpga` | FPGA Emulation | Port ASIC to FPGA, bring up hardware, validate SW on prototype |
-| `chip-design-infrastructure` | Infrastructure & Memory | Detect EDA tools, deploy wrappers, configure MCP servers, distil domain memory |
+| `chip-design-infrastructure` | Infrastructure & Memory | Detect licensed Synopsys/Cadence/Siemens EDA tools and report host utilities |
 | `chip-design-meta` | Pipeline Orchestration | Drive closed-loop verification↔RTL feedback, manage fix_requests, enforce iteration cap |
 
 ---

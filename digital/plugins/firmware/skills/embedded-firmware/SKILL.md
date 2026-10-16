@@ -71,7 +71,7 @@ to run on real silicon — correctness here enables all subsequent SW developmen
    - Branch to `main()`
 2. `SystemInit()` order: power stable → PLLs → clock mux → peripherals
 3. Interrupt controller: define vector table, IRQ enable/disable API, priority API
-4. `memory_map.h`: ALL peripheral base addresses and register offsets — no magic numbers
+4. `memory_map.h`: ALL peripheral base addresses and register offsets — no hard-coded constants
 5. All hardware register accesses: `volatile` pointer dereference
 6. Atomic read-modify-write on hardware registers: disable IRQ or use atomic ops
 7. Memory barriers (DMB/DSB or equivalent) around hardware access sequences

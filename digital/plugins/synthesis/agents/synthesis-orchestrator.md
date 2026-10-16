@@ -19,21 +19,13 @@ constraint_setup → compile_explore → compile_final → netlist_qc → synthe
 
 ## Tool Options
 
-### Open-Source
-- Yosys (`yosys`) — open-source synthesis suite; runs as a sequential pass pipeline (see Yosys sequential flow note in skill)
-- Surelog — SystemVerilog front-end for Yosys (`surelog`)
-- ABC — logic optimisation and technology mapping
-
-### Proprietary
+### Supported EDA Tools
 - Synopsys Design Compiler (`dc_shell`)
 - Cadence Genus (`genus`)
 - Synopsys Fusion Compiler (`fc_shell`)
 
-### MCP Preference
-When invoking open-source tools, follow the execution hierarchy:
-1. **MCP server** — use `yosys` MCP if active in `.claude/settings.json` (lowest context overhead)
-2. **Wrapper script** — `plugins/infrastructure/tools/wrap-yosys.sh` (structured JSON output)
-3. **Direct execution** — last resort; raw logs will consume significant context
+Use only licensed Synopsys, Cadence, or Siemens EDA tools; do not fall back to
+open-source synthesis tools.
 
 ## Loop-Back Rules
 - compile_final FAIL (WNS < 0)          → compile_final    (max 3×)

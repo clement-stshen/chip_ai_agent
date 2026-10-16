@@ -19,22 +19,12 @@ ip_procurement → ip_configuration → bus_fabric_setup → top_integration →
 
 ## Tool Options
 
-### Open-Source
-- Verilator (`verilator`)
-- cocotb (Python co-simulation)
-- FuseSoC (`fusesoc`)
-- Edalize
-
-### Proprietary
+### Supported EDA Tools
 - Synopsys VCS (`vcs`)
 - Cadence Xcelium (`xrun`)
 - Siemens Questa (`vsim`)
 
-### MCP Preference
-When invoking open-source tools, follow the execution hierarchy:
-1. **MCP server** — use `verilator` MCP if active in `.claude/settings.json` (lowest context overhead)
-2. **Wrapper script** — `wrap-verilator-sim.sh` (structured JSON with pass/fail and coverage)
-3. **Direct execution** — last resort; chip-level simulation logs are very large
+Use only these vendor simulators for SoC-level EDA execution.
 
 ## Loop-Back Rules
 - ip_configuration FAIL (timing/interface error)  → ip_procurement    (max 2×)

@@ -14,7 +14,7 @@ import os
 import re
 from pathlib import Path
 
-NPI_INC_DEFAULT = "/tools/Synopsys/temp/NPI/inc"
+from .site_paths import NPI_INC as NPI_INC_DEFAULT
 
 # header file stem -> human-readable family description
 FAMILY_DESC = {

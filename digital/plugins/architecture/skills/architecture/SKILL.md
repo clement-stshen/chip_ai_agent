@@ -48,16 +48,12 @@ PPA modelling, risk assessment, and sign-off.
 
 ## Supported EDA Tools
 
-### Open-Source
-- **gem5** (`gem5`) — full-system micro-architectural simulator for performance modelling
-- **McPAT** (`mcpat`) — processor power, area, and timing estimator
-- **CACTI** (`cacti`) — SRAM/cache power and area estimator
-- **Python estimation scripts** (`python3 estimate.py`) — custom PPA models
-
-### Proprietary
+### Supported EDA Tools
 - **Synopsys Platform Architect** — IP-level performance and power exploration
-- **ARM Performance Models** — cycle-accurate ARM subsystem models
 - **Cadence Virtual System Platform (VSP)** — SoC-level virtual prototyping
+
+Use project-owned Python models for estimates not supported by these tools; do
+not substitute open-source EDA tools or tools from other EDA vendors.
 
 ---
 
@@ -161,7 +157,7 @@ PPA modelling, risk assessment, and sign-off.
 Perform this analysis using the activity factors already collected for dynamic power:
 
 1. For each identified clock domain, record its activity factor α derived from the
-   use-case workload sweep (gem5 simulation or analytical model).
+  use-case workload sweep or analytical model.
 2. Classify each domain using thresholds from `design_state.constraints.power.activity_factors` (defaults: `{"default": 0.15, "high": 0.40}`):
    - α < `activity_factors.default` (default: 0.15) — **high gating opportunity**: clock gating will save > 30% dynamic power
      for that domain; flag as a must-have RTL requirement.
@@ -175,20 +171,16 @@ Perform this analysis using the activity factors already collected for dynamic p
    | core   | 1 GHz     | 0.08        | 45                   | high         |
    | dsp    | 500 MHz   | 0.55        | 30                   | always-on    |
 
-4. McPAT `clocking` component already models clock network power — ensure the
-   frequency-sweep input reflects per-domain frequencies, not a single global clock.
+4. Ensure any frequency-sweep model reflects per-domain frequencies, not a
+  single global clock.
 5. Include the `clock_power_budget` table in the hand-off package to RTL design.
    The RTL agent will use it to target ICG (Integrated Clock Gate) insertion.
 
 ### Supported Tools for Clock/Power Analysis
 | Tool | Type | Use |
 |------|------|-----|
-| McPAT | Open-source | Clock network + dynamic/leakage power (already in flow) |
-| gem5 | Open-source | Workload activity factor extraction (already in flow) |
-| CACTI | Open-source | Memory clock power estimate (already in flow) |
-| Yosys + ABC | Open-source | Post-synth switching activity cross-check (optional) |
-| Synopsys PrimePower | Proprietary | RTL-level power sign-off (optional) |
-| Cadence Joules RTL | Proprietary | RTL power analysis (optional) |
+| Synopsys PrimePower | Synopsys | RTL-level power sign-off (optional) |
+| Cadence Joules RTL | Cadence | RTL power analysis (optional) |
 
 ### QoR Metrics to Evaluate
 - Area estimate: < 80% of `design_state.constraints.area.area_um2` budget (required constraint — see architecture-orchestrator Behaviour Rule 9)

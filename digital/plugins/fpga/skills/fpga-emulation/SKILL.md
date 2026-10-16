@@ -3,8 +3,8 @@ name: fpga-emulation
 description: >
   FPGA prototyping — ASIC-to-FPGA RTL adaptation, multi-FPGA partitioning,
   synthesis and timing closure on FPGA, hardware bring-up, and software
-  validation on the prototype. Use when porting an ASIC design to Xilinx or
-  Intel FPGA for pre-silicon software development and hardware validation.
+  validation on a supported prototype platform. Use when planning ASIC-to-FPGA
+  adaptation for pre-silicon software development and hardware validation.
 version: 1.0.0
 author: chuanseng-ng
 license: MIT
@@ -47,18 +47,13 @@ provides functional and architectural validation months before silicon.
 
 ## Supported EDA Tools
 
-### Open-Source
-- **Yosys** (`yosys`) — open-source synthesis for Xilinx/Intel/Lattice FPGA targets
-- **nextpnr** (`nextpnr-xilinx`, `nextpnr-ice40`, `nextpnr-ecp5`) — place-and-route for open-source flows
-- **OpenFPGALoader** (`openFPGALoader`) — universal FPGA programmer
-- **Project IceStorm** — iCE40 FPGA toolchain (icepack, iceprog, icetime)
-- **Project X-Ray** — Xilinx 7-series bitstream documentation
+### Supported EDA Tools
+- **Synopsys Synplify** — FPGA synthesis front-end targeting supported device families
 
-### Proprietary
-- **Xilinx Vivado** (`vivado`) — synthesis, implementation, and bitstream generation for AMD/Xilinx
-- **Intel Quartus** (`quartus_sh`) — synthesis and programming for Intel/Altera FPGAs
-- **Microchip Libero** (`libero`) — synthesis and programming for PolarFire/SmartFusion FPGAs
-- **Synopsys Synplify** — FPGA synthesis front-end targeting multiple device families
+This skill does not provide a complete FPGA implementation or programming flow.
+If the requested target requires implementation software outside Synopsys,
+Cadence, or Siemens, stop and request a supported licensed environment. Do not
+invoke or recommend tools from other vendors.
 
 ---
 
@@ -67,8 +62,8 @@ provides functional and architectural validation months before silicon.
 ### ASIC → FPGA Substitutions
 | ASIC Element | FPGA Replacement |
 |---|---|
-| SRAM macros | BRAM/URAM (Xilinx) or M20K (Intel) |
-| Analog PLLs | MMCM (Xilinx) or ALTPLL (Intel) |
+| SRAM macros | Target FPGA's supported block-memory primitive |
+| Analog PLLs | Target FPGA's supported clock-management primitive |
 | IO pad cells | FPGA IOB + IOBUF primitives |
 | Analog/mixed-signal | Stub model or remove |
 | DFT scan logic | Remove — not needed on prototype |
@@ -78,13 +73,13 @@ provides functional and architectural validation months before silicon.
 1. Match port configuration (single-port vs dual-port)
 2. BRAM has 1-cycle read latency — verify RTL handles this
 3. Memories > available BRAM: use external DDR via MIG/HBM controller
-4. Use `XPM_MEMORY` (Xilinx) or equivalent portable macros
+4. Use the target vendor's documented memory primitive or a reviewed inference template
 
 ### Clock Replacement Rules
-1. Replace ASIC PLL with MMCM (Xilinx) or ALTPLL (Intel)
+1. Replace ASIC PLL with a target-vendor clock-management primitive
 2. Scale all clocks to FPGA prototype frequency (typically 50–100 MHz from ≥ 1 GHz ASIC)
 3. Maintain same ratio between clock domains
-4. Use BUFG for all global clocks — never route clocks on data fabric
+4. Use dedicated global clock resources — never route clocks on data fabric
 
 ### QoR Metrics to Evaluate
 - No ASIC-specific primitives remain in adapted RTL
@@ -123,7 +118,8 @@ provides functional and architectural validation months before silicon.
 ## Stage: fpga_synthesis
 
 ### Domain Rules
-1. Full Vivado (Xilinx) or Quartus (Intel) flow:
+1. Run a complete implementation flow only when the required vendor tool is within
+  the supported Synopsys/Cadence/Siemens inventory; otherwise stop and escalate.
    synth → opt → place → route → phys_opt → bitstream
 2. Timing target: WNS ≥ `design_state.constraints.timing.wns_ns_target` (default: 0) at prototype frequency
 3. If WNS < 0: reduce frequency first; add pipeline registers second

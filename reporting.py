@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from .failure_taxonomy import retry_strategy_for
+from .failure_taxonomy import FAILURE_CLASS_MAP, retry_strategy_for
 
 STATUSES = ("PASS", "FAIL", "WARN")
 CONFIDENCES = ("high", "medium", "low")
@@ -29,6 +29,16 @@ class Gate:
     evidence: str = ""                  # measured source (command/file/line)
     criterion: str = ""                 # what "pass" means
     inferred: bool = False
+
+    def __post_init__(self) -> None:
+        if self.passed is True and not self.evidence:
+            raise ContractViolation(
+                f"gate '{self.name}': measured-PASS requires non-empty "
+                "evidence (Reporting Contract #8 — unverifiable pass)")
+        if self.passed is True and not self.criterion:
+            raise ContractViolation(
+                f"gate '{self.name}': measured-PASS requires a non-empty "
+                "criterion (Reporting Contract #7 — unauditable pass)")
 
     def to_dict(self) -> dict:
         return {"name": self.name,
@@ -56,6 +66,10 @@ class StageReport:
         if self.confidence not in CONFIDENCES:
             raise ContractViolation(
                 f"confidence must be one of {CONFIDENCES}")
+        if self.failure_class and self.failure_class not in FAILURE_CLASS_MAP:
+            raise ContractViolation(
+                f"{self.stage}: failure_class '{self.failure_class}' is not "
+                "in the taxonomy enum (Reporting Contract #6)")
         if self.status in ("FAIL", "WARN"):
             if self.failure_class in ("", "none"):
                 raise ContractViolation(
@@ -89,15 +103,22 @@ class StageReport:
 def gate_from_wrapper(wrapper_result: dict, name: str = "") -> Gate:
     """Build a Gate from a vendored wrapper JSON result.
 
-    Contract #1: exit_code 0 with status FAIL / verified=false / unparsable
-    output is never a pass — verified=True is the only measured pass.
+    Contract #1: a measured pass requires exit 0, status=PASS, and
+    verified=True. Conflicting or failed wrapper results fail closed.
+
+    Namespace: wrapper gates are named ``wrapper:<tool>`` so the
+    design-pipeline taxonomy audit (Step 22) can distinguish them from
+    signoff gates.
     """
-    name = name or wrapper_result.get("tool", "wrapper")
+    name = name or f"wrapper:{wrapper_result.get('tool', 'unnamed')}"
     verified = wrapper_result.get("verified") is True
     status = wrapper_result.get("status", "")
+    exit_code = wrapper_result.get("exit_code")
+    passed = status == "PASS" and exit_code == 0 and verified
+    failed = status in ("FAIL", "WARN") or exit_code not in (None, 0)
     return Gate(
         name=name,
-        passed=True if verified else (False if status in ("FAIL", "WARN") else None),
-        evidence=f"wrapper status={status} exit={wrapper_result.get('exit_code')} "
+        passed=True if passed else (False if failed else None),
+        evidence=f"wrapper status={status} exit={exit_code} "
                  f"errors={len(wrapper_result.get('errors', []))}",
         criterion="wrapper verified=true (tool's own pass marker)")

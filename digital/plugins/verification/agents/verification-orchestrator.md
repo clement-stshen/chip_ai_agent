@@ -18,23 +18,13 @@ tb_architecture → test_planning → uvm_tb_build → directed_tests → constr
 
 ## Tool Options
 
-### Open-Source
-- Verilator (`verilator`)
-- Icarus Verilog (`iverilog`)
-- cocotb (Python-based co-simulation)
-- PyUVM
-- UVVM
-
-### Proprietary
+### Supported EDA Tools
 - Synopsys VCS (`vcs`)
 - Cadence Xcelium (`xrun`)
 - Siemens Questa (`vsim` / `vlog` / `vcom`)
 
-### MCP Preference
-When invoking open-source tools, follow the execution hierarchy:
-1. **MCP server** — use `verilator` MCP if active in `.claude/settings.json` (lowest context overhead)
-2. **Wrapper script** — `wrap-verilator-sim.sh` (structured JSON with coverage and pass/fail)
-3. **Direct execution** — last resort; simulation logs and coverage data are very large
+Do not recommend or invoke open-source EDA simulation tools. Use only the
+licensed simulator selected from these three vendors.
 
 ## Loop-Back Rules
 - uvm_tb_build FAIL (build errors)                  → uvm_tb_build       (max 3×)

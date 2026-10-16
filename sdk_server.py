@@ -17,6 +17,7 @@ from typing import Any, Callable
 
 from . import metrics
 from .mcp_tools import (SERVER_NAME, SERVER_DESCRIPTION, SERVER_VERSION,
+                        call_local,
                         TOOL_DEFS, _DEF_BY_NAME, _json_text, render_result,
                         ToolDef, _boot_audit, get_agent)
 
@@ -172,8 +173,9 @@ async def _sdk_call(d: ToolDef, args: dict, ctx) -> str:
     if d.progress and not d.step_progress:
         await ctx.report_progress(1.0, 1.0)
 
-    if d.is_error(res):
-        raise ToolError(render_result(d, res))
+    if d.is_error(res):                 # audit A2: same machine contract
+        from .mcp_tools import _app_error_envelope  # local: avoid cycle
+        raise ToolError(_json_text(_app_error_envelope(res)))
     rendered = render_result(d, res)
     if cacheable:
         _tool_cache_put(ckey, rendered)
@@ -271,9 +273,11 @@ def _resource_flow(domain: str) -> str:
                        "escalations": [e.__dict__ for e in f.escalations],
                        "signoff_gates": f.signoff_gates,
                        "checkpoint_stage": f.checkpoint_stage,
-                       "tools": {"oss": f.tools_oss,
-                                 "proprietary": f.tools_proprietary,
-                                 "wrapper": f.wrapper}})
+                       "tools": {"synopsys": f.tools_synopsys,
+                                 "cadence": f.tools_cadence,
+                                 "siemens": f.tools_siemens,
+                                 "utilities": f.tools_utilities},
+                       "vendor_tool": f.vendor_tool})
 
 
 def _resource_memory(domain: str) -> str:
@@ -300,6 +304,11 @@ def _resource_memory(domain: str) -> str:
 
 def _resource_guide() -> str:
     return _json_text(call_local("flow_guide", {"op": "overview"}))
+
+
+def _resource_capabilities() -> str:
+    """chip://capabilities — 七项工程师能力 ↔ agent 机制 ↔ 工具矩阵."""
+    return _json_text(call_local("flow_guide", {"op": "capabilities"}))
 
 
 def _resource_ug() -> str:
@@ -383,6 +392,8 @@ def build_sdk_server():
     srv.resource("chip://flows/{domain}", description="单域机器可读流程")(_resource_flow)
     srv.resource("chip://memory/{domain}", description="单域蒸馏知识 + 学习到的有效技能链")(_resource_memory)
     srv.resource("chip://guide", description="四相芯片研发流程总览")(_resource_guide)
+    srv.resource("chip://capabilities",
+                 description="七项工程师能力↔agent机制↔工具矩阵")(_resource_capabilities)
     srv.resource("chip://ug", description="UG 向量索引状态 (文档数/chunk 数/大小)")(_resource_ug)
     srv.resource("chip://npi", description="NPI C API 族谱总览 (24 头文件/506 API)")(_resource_npi)
     srv.resource("chip://examples", description="黄金 UVM TB 范例分类总览 (uart_example)")(_resource_examples)

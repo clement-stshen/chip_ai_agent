@@ -27,14 +27,14 @@ from __future__ import annotations
 
 import json
 import os
+import select
 import subprocess
 import sys
 import threading
+import time
 from pathlib import Path
 
-NPI_ROOT = Path("/tools/Synopsys/temp/NPI")
-NPI_PY = NPI_ROOT / "python"
-NPI_LIB = NPI_ROOT / "lib" / "linux64"
+from .site_paths import NPI_ROOT, NPI_PY, NPI_LIB
 
 _SETUP_HINT = "module load synopsys   # or set VERDI_HOME to the Verdi install"
 
@@ -117,6 +117,7 @@ def _check_fsdb(args: dict) -> dict | None:
         return {"ok": False, "error": "fsdb path required"}
     if not Path(fsdb).exists():
         return {"ok": False, "error": f"fsdb not found: {fsdb}"}
+    args["fsdb"] = str(fsdb)
     return None
 
 
@@ -537,6 +538,7 @@ class NpiWorker:
         self.proc = None
         self._next_id = 1
         self._lock = threading.Lock()
+        self._stdout_buffer = b""
 
     def _ensure(self) -> dict | None:
         """Spawn the worker; returns a degrade dict when Verdi is absent."""
@@ -551,8 +553,9 @@ class NpiWorker:
                  "from chip_ai_agent.npi_tools import _worker_main\n"
                  "sys.exit(_worker_main())\n" % str(Path(__file__).parent.parent)],
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                text=True, bufsize=1,
+                bufsize=0,
                 env={**os.environ, "PYTHONPATH": str(NPI_PY)})
+            self._stdout_buffer = b""
         except Exception as e:
             return {"ok": False, "error": f"failed to spawn npi worker: {e}"}
         return None
@@ -565,31 +568,59 @@ class NpiWorker:
             assert self.proc is not None
             mid = self._next_id
             self._next_id += 1
-            self.proc.stdin.write(json.dumps({"id": mid, "cmd": name, **kw}) + "\n")
+            self.proc.stdin.write(
+                (json.dumps({"id": mid, "cmd": name, **kw}) + "\n").encode())
             self.proc.stdin.flush()
             try:
-                for line in self.proc.stdout:
-                    resp = json.loads(line)
-                    if resp.get("id") == mid:
-                        resp.pop("id", None)
-                        return resp
+                deadline = time.monotonic() + self.timeout
+                while True:
+                    if b"\n" in self._stdout_buffer:
+                        line, self._stdout_buffer = self._stdout_buffer.split(
+                            b"\n", 1)
+                        if not line.strip():
+                            continue
+                        resp = json.loads(line)
+                        if resp.get("id") == mid:
+                            resp.pop("id", None)
+                            return resp
+                        continue
+
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0 or not select.select(
+                            [self.proc.stdout], [], [], remaining)[0]:
+                        self.close()
+                        return {"ok": False,
+                                "error": f"npi worker timed out after {self.timeout}s"}
+                    chunk = os.read(self.proc.stdout.fileno(), 4096)
+                    if not chunk:
+                        self.close()
+                        return {"ok": False, "error": "npi worker exited"}
+                    self._stdout_buffer += chunk
             except Exception as e:
                 self.close()
                 return {"ok": False, "error": f"npi worker failed: {e}"}
-            return {"ok": False, "error": "npi worker exited"}
 
     def close(self):
-        if self.proc is not None:
+        proc, self.proc = self.proc, None
+        self._stdout_buffer = b""
+        if proc is not None:
             try:
-                self.proc.stdin.write('{"id": 0, "cmd": "exit"}\n')
-                self.proc.stdin.flush()
-                self.proc.wait(timeout=3)
+                proc.stdin.write(b'{"id": 0, "cmd": "exit"}\n')
+                proc.stdin.flush()
             except Exception:
+                pass
+            try:
+                proc.wait(timeout=0.2)
+            except subprocess.TimeoutExpired:
                 try:
-                    self.proc.kill()
+                    proc.terminate()
                 except Exception:
                     pass
-        self.proc = None
+                try:
+                    proc.wait(timeout=1)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    proc.wait()
 
 
 _WORKER: NpiWorker | None = None

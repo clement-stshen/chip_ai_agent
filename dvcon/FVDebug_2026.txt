@@ -1,0 +1,9 @@
+FVDebug: An LLM-Driven Debugging Assistant for Automated Root Cause Analysis of Formal Verification Failures (DVCon US 2026)
+
+Debugging formal verification failures is one of the most time-consuming bottlenecks in modern hardware design workflows; engineers manually trace multi-cycle counterexamples through waveforms for hours or days per bug.
+
+We present a four-stage pipeline: first, causal graph synthesis converts flat CEX traces into a directed acyclic graph of signal events where edges represent immediate causal dependencies (JasperGold visualize -why recursive dependency tracing, 20-cycle default depth). Second, a graph scanner performs batched LLM analysis of nodes with for-and-against prompting that argues both sides of each hypothesis to reduce confirmation bias. Third, an Insight Rover runs agentic hypothesis exploration, generating, refining and ranking competing causal narratives with confidence scores. Fourth, a fix generator synthesizes concrete RTL patches and a debugging report with ranked hypotheses and a causal timeline.
+
+Our approach emulates the structured multi-source reasoning of a human expert instead of treating the counterexample as a flat event sequence.
+
+In conclusion, on the SVA-Eval-Human benchmark of 38 real hardware failures, FVDebug achieves Quality@Best 0.956, NDCG@5 0.983, MRR 0.858 and Kendall's tau 0.708, with 71.1% Pass@1 and 86.8% Pass@5 fix rates, while the direct-LLM baseline only reaches 0.783 quality and 0.605 Pass@1 and flat trace analysis falls to 0.474, proving explicit causal relationships are fundamental to accurate root cause identification. Two production-scale counterexamples with over 500k lines of code were diagnosed as Excellent Match and Strong Match within minutes, and ablations show removing the Insight Rover drops quality to 0.795.

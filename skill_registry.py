@@ -1,7 +1,7 @@
 """Capability registry: scan skills directories, parse front matter,
 classify skills by domain and routing target.
 
-Supports the decrypted Synopsys SKILL.md format (multi-line YAML front
+Supports the Synopsys SKILL.md format (multi-line YAML front
 matter with `description: |` blocks, `target: [...]` routing metadata,
 `examples:` lists) as well as the simple `# Title` markdown format used
 by the built-in methodology skills. Duplicate skill names (e.g. a skill
@@ -173,9 +173,9 @@ class SkillRegistry:
 
     @staticmethod
     def parse_skill_md(text: str) -> dict:
-        """Parse a (decrypted) SKILL.md into name/description/sections.
+        """Parse a SKILL.md into name/description/sections.
 
-        Returns {"encrypted": True} for Fernet blobs; handles the common
+        Returns {"encrypted": True} for encrypted blobs; handles the common
         front-matter + markdown structure, including multi-line YAML values,
         `target` routing metadata and `examples` lists.
         """

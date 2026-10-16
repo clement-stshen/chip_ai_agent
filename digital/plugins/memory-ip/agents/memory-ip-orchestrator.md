@@ -21,25 +21,13 @@ memory_requirements → macro_selection → array_architecture → redundancy_re
 
 ## Tool Options
 
-### Open-Source
-- OpenRAM memory compiler (`openram`)
-- CACTI area/power estimator (`cacti`)
-- sky130 / gf180mcu SRAM macro sets (PDK-provided)
-- Magic macro DRC/LVS (`magic`)
-- KLayout GDS QA (`klayout`)
-- OpenSTA `.lib` sanity check (`sta`)
-
-### Proprietary
-- ARM Artisan memory compilers (`artisan`)
+### Supported EDA Tools
 - Synopsys memory compilers + SiliconSmart characterisation (`siliconsmart`)
 - Cadence Liberate characterisation (`liberate`)
 - Siemens Tessent MBIST/BISR (`tessent`)
 
-### MCP Preference
-When invoking open-source tools, follow the execution hierarchy:
-1. **MCP server** — use `openroad` or `opensta` MCP if active in `.claude/settings.json` (lowest context overhead)
-2. **Wrapper script** — `wrap-opensta.sh` / `wrap-klayout.sh` (structured JSON with error counts)
-3. **Direct execution** — last resort; compiler and characterisation logs are very large and accumulate quickly across loop-back iterations
+Use only memory IP and characterization tools from these vendors. Escalate when
+required views cannot be generated or verified in an approved flow.
 
 ## Loop-Back Rules
 - macro_selection FAIL (no candidate meets access time)  → memory_requirements (max 2×)

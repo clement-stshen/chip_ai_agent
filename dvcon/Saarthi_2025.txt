@@ -1,0 +1,9 @@
+Saarthi: The First AI Formal Verification Engineer (DVCon US 2025)
+
+Formal property verification of control-dominated blocks demands substantial expert effort for property authoring and proof closure.
+
+We present an agentic AI method for formal property verification: the agent reads specifications, drafts SVA properties, drives a formal engine, analyzes counterexamples, and iteratively refines properties and proof settings, targeting autonomous proof closure for control-dominated blocks. The workflow uses coder and critic reflection loops with planning and multi-agent collaboration built on CrewAI, AutoGen and LangGraph frameworks, treating every compile error, counterexample and proof result as feedback for the next planning round.
+
+Our approach shows agentic and few-shot workflows dramatically outperform zero-shot baselines: a GPT-3.5 model inside the agentic loop beats a zero-shot GPT-4, and the agent reaches a 100 percent pass rate on a FIFO SVA generation task.
+
+In conclusion, first-generation autonomous success rates of about 40 to 50 percent demonstrate that closed-loop reflection matters more than raw model capability, while full autonomous sign-off remains an open challenge that requires auditable human gates.

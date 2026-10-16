@@ -15,7 +15,7 @@ def main():
     p.add_argument("intent", nargs="?", default="",
                    help="natural-language task, e.g. 'trace X at u_core/dout'")
     p.add_argument("--skills",
-                   default="/tools/lsf_api/chip_ai_agent/skills",
+                   default=str(Path(__file__).parent / "skills"),
                    help="skills directory (default: agent's own dir with all "
                         "123 Synopsys skills + built-in methodology skills)")
     p.add_argument("--extra-skills", action="append", default=None,

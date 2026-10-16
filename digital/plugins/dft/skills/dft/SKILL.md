@@ -47,11 +47,7 @@ chip meets quality targets (fault coverage and DPPM).
 
 ## Supported EDA Tools
 
-### Open-Source
-- **Yosys DFT plugins** (`yosys`) — basic scan insertion for open-source flows
-- **OpenROAD DFT utilities** (`openroad`) — scan insertion within the OpenROAD/ORFS flow
-
-### Proprietary
+### Supported EDA Tools
 - **Synopsys TetraMAX ATPG** (`tmax`) — pattern generation, fault simulation, and compression
 - **Cadence Modus Test** (`modus`) — ATPG, scan DRC, and diagnosis
 - **Siemens Tessent** (`tessent`) — full DFT suite: scan, ATPG, MBIST, IJTAG

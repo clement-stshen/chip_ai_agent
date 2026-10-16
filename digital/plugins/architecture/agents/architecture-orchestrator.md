@@ -22,22 +22,12 @@ spec_analysis → arch_exploration → perf_modelling → power_area_estimation 
 
 ## Tool Options
 
-### Open-Source
-- Python estimation scripts (`python3 estimate.py`)
-- gem5 full-system simulator (`gem5`)
-- McPAT power-area estimator (`mcpat`)
-- CACTI memory estimator (`cacti`)
-
-### Proprietary
+### Supported EDA Tools
 - Synopsys Platform Architect
-- ARM Performance Models
 - Cadence Virtual System Platform (VSP)
 
-### MCP Preference
-When invoking open-source tools, follow the execution hierarchy:
-1. **MCP server** — use `gem5` MCP if active in `.claude/settings.json` (lowest context overhead)
-2. **Wrapper script** — `wrap-gem5.sh` (structured JSON with IPC/throughput summary)
-3. **Direct execution** — last resort; gem5 stats files are extremely large
+Use Python only for project-owned estimation scripts. Do not recommend or invoke
+EDA tools outside Synopsys, Cadence, or Siemens.
 
 ## Loop-Back Rules
 - perf_modelling FAIL (throughput misses target)         → arch_exploration   (max 3×)

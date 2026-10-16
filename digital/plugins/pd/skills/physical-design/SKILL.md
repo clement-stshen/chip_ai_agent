@@ -47,57 +47,15 @@ criteria enforced by the physical-design orchestrator.
 
 ## Supported EDA Tools
 
-### Open-Source
-- **OpenROAD / ORFS** (`make DESIGN_CONFIG=./designs/<platform>/<design>/config.mk`) — full PD pipeline; executes sequentially (see sequential flow note below)
-- **LibreLane / OpenLane 2** (`openlane <config.json>`) — sequential PD pipeline built on OpenROAD; (see sequential flow note below)
-- **KLayout** (`klayout`) — DRC, LVS, and GDS-II viewing/editing; used for signoff DRC in open-source flows
-
-### Proprietary
+### Supported EDA Tools
 - **Cadence Innovus** (`innovus`) — floorplan through signoff; interactive and batch modes
 - **Synopsys IC Compiler 2** (`icc2_shell`) — hierarchical PD with Fusion technology
 - **Siemens Aprisa** — physical implementation for advanced nodes
 
-### Sequential Flow Log Review (OpenROAD / LibreLane)
-
-OpenROAD Flow Scripts (ORFS) and LibreLane execute the **entire PD pipeline in a single
-invocation**. Stages run sequentially without pausing for agent intervention. After the
-run completes (or fails mid-stage), the agent **must read the per-stage log files** to
-evaluate QoR and apply loop-back logic.
-
-**ORFS log layout:**
-```
-logs/<platform>/<design>/
-  1_1_yosys.log         # synthesis (Yosys)
-  2_1_floorplan.log     # floorplan (OpenROAD)
-  3_1_place.log         # global placement (OpenROAD)
-  3_4_resizer.log       # resizer / timing-driven placement
-  4_1_cts.log           # clock tree synthesis (OpenROAD)
-  5_1_route.log         # global routing (OpenROAD)
-  5_3_fillcell.log      # filler cell insertion
-  6_1_finishing.log     # signoff: DRC (KLayout/Magic), LVS (Netgen), final STA
-```
-Invocation: `make DESIGN_CONFIG=./designs/<platform>/<design>/config.mk`
-Resume from stage: `make do-<stage>` (e.g. `make do-3_2_place`)
-
-**LibreLane (OpenLane 2) log layout:**
-```
-runs/<design>/<run_tag>/logs/
-  synthesis/            # Yosys synthesis logs
-  floorplan/            # OpenROAD floorplan logs
-  placement/            # OpenROAD placement logs (global + detail)
-  cts/                  # OpenROAD CTS logs
-  routing/              # OpenROAD global + detailed routing (DRT) logs
-  signoff/              # Magic/Netgen DRC+LVS, OpenSTA final timing
-```
-Invocation: `openlane <config.json>` (or `python3 -m openlane <config.json>`)
-Resume from step: `openlane --from <step_name> <config.json>`
-
-**Agent procedure after run:**
-1. Identify the last successfully completed stage from log timestamps or exit codes
-2. Read the log for each completed stage and extract the relevant QoR metrics
-   (WNS, DRC count, congestion, IR drop) defined in the `## Stage:` sections below
-3. Apply loop-back rules from this skill; correct the input config or constraints
-4. Re-invoke from the failed stage using the resume command above
+Run implementation and sign-off through the selected vendor's native flow. Read
+the vendor-generated reports for each completed stage, apply the loop-back rules,
+and resume using vendor-supported mechanisms. Do not substitute an open-source
+implementation or sign-off tool.
 
 ---
 

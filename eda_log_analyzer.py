@@ -1,4 +1,4 @@
-"""Iterative EDA log analyzer: VCS compile/sim, UVM, Verdi, LSF.
+"""Iterative EDA log analyzer: vendor EDA tools (Synopsys/Cadence/Siemens) + LSF.
 
 Parses logs produced by EDA tools into structured issues, classifies the
 failure (failure_taxonomy), derives a retry strategy, and recommends the
@@ -10,6 +10,11 @@ Supported log kinds (auto-detected):
                 SVA assertion failures, timeout, licence checkout
   verdi       : *Error* / *Warning* + "Total N error(s), M warning(s)"
   lsf         : TERM_MEMLIMIT / TERM_RUNLIMIT / exit codes
+  xcelium     : *E,SEVFX (file, line|col): msg; "Errors: N, Warnings: N"
+  questa      : "# ** Error/Fatal/Warning:" + "Errors: N, Warnings: N"
+  genus       : *Error,MSGID (file, LINE): msg (Cadence RC family)
+  innovus     : **ERROR: / **WARNING: (Cadence physical design)
+  calibre     : ERROR: / WARNING: + "Total Results:" (Siemens DRC/LVS)
 """
 from __future__ import annotations
 
@@ -20,6 +25,18 @@ from .failure_taxonomy import classify_failure, retry_strategy_for
 
 # ---------------------------------------------------------------- detection
 def detect_kind(text: str) -> str:
+    # vendor-specific markers first; the generic bare-"Error:" fallback must
+    # stay last so Questa/Calibre/Innovus are not misrouted to vcs_compile
+    if re.search(r"^\s*\*E,\w{5}|xmvlog|xrun:|\*\*\* xcelium", text, re.M):
+        return "xcelium"
+    if re.search(r"(?:^|\n)#\s*\*\*\s*(?:Error|Fatal|Warning):|vsim\b|\*\*\* Welcome to Questa", text):
+        return "questa"
+    if re.search(r"^\s*\*Error,\w+|\*\*\* Welcome to genus|genus>", text, re.M):
+        return "genus"
+    if re.search(r"\*\*ERROR:|\*\*WARNING:|\*\*\* Welcome to Innovus", text):
+        return "innovus"
+    if re.search(r"(?:^|\n)\s*(?:ERROR|WARNING):|\*\*CALIBRE|Total Results:", text, re.M):
+        return "calibre"
     if re.search(r"Error-\[|Warning-\[", text):
         return "vcs_compile"
     if re.search(r"UVM_(INFO|WARNING|ERROR|FATAL)|UVM Report Summary|UVM_TESTNAME", text):
@@ -138,6 +155,96 @@ PARSERS = {"vcs_compile": _parse_vcs_compile, "vcs_uvm_sim": _parse_vcs_uvm,
            "verdi": _parse_verdi, "lsf": _parse_lsf}
 
 
+def _cadence_errors_warnings_summary(text: str) -> dict:
+    counts = {}
+    m = re.search(r'Errors:\s*(\d+),\s*Warnings:\s*(\d+)', text)
+    if m:
+        counts = {"errors": int(m.group(1)), "warnings": int(m.group(2))}
+    return counts
+
+
+def _parse_xcelium(text: str) -> dict:
+    """Xcelium/xrun: *E,SEVFX (file, line|col): message."""
+    issues = []
+    for m in re.finditer(r'\*([EWFC]),(\w+)\s*\(([^,()]+),\s*([^)]+)\):\s*([^\n]+)', text):
+        sev = {"E": "ERROR", "W": "WARNING", "F": "FATAL", "C": "FATAL"}[m.group(1)]
+        issues.append({"severity": sev, "category": f"xcelium_{m.group(2).lower()}",
+                       "source": f"{m.group(3).strip()}:{m.group(4).strip()}",
+                       "message": m.group(5).strip()})
+    counts = _cadence_errors_warnings_summary(text)
+    if not counts:
+        counts = {"errors": sum(1 for i in issues if i["severity"] == "ERROR"),
+                  "warnings": sum(1 for i in issues if i["severity"] == "WARNING")}
+    return {"issues": issues, "counts": counts}
+
+
+def _parse_questa(text: str) -> dict:
+    """Questa/vsim: '# ** Error: msg', '# ** Fatal: msg', 'Errors: N, Warnings: N'."""
+    issues = []
+    for m in re.finditer(r'(?:^|\n)#?\s*\*\*\s*(Error|Fatal|Warning):\s*([^\n]+)', text):
+        sev = {"Error": "ERROR", "Fatal": "FATAL", "Warning": "WARNING"}[m.group(1)]
+        msg = m.group(2).strip()
+        cat = "license" if re.search(r"licen[cs]e", msg, re.I) else "questa"
+        issues.append({"severity": sev, "category": cat,
+                       "source": "", "message": msg})
+    for m in re.finditer(r'([^\s:]+\.sv?[a-z]*)(?:\((\d+)\))?', text):
+        if any(i["source"] == "" and m.group(1) in i["message"] for i in issues):
+            i = next(i for i in issues if i["source"] == "" and m.group(1) in i["message"])
+            i["source"] = m.group(1) + (f":{m.group(2)}" if m.group(2) else "")
+    counts = _cadence_errors_warnings_summary(text)
+    if not counts:
+        counts = {"errors": sum(1 for i in issues if i["severity"] in ("ERROR", "FATAL")),
+                  "warnings": sum(1 for i in issues if i["severity"] == "WARNING")}
+    return {"issues": issues, "counts": counts}
+
+
+def _parse_genus(text: str) -> dict:
+    """Genus (Cadence RC family): *Error,MSGID (file, LINE): message."""
+    issues = []
+    for m in re.finditer(r'\*(Error|Warning),(\w+)\s*\(([^,()]+),\s*([^)]+)\):\s*([^\n]+)', text):
+        sev = m.group(1).upper()
+        issues.append({"severity": sev, "category": f"genus_{m.group(2).lower()}",
+                       "source": f"{m.group(3).strip()}:{m.group(4).strip()}",
+                       "message": m.group(5).strip()})
+    counts = {"errors": sum(1 for i in issues if i["severity"] == "ERROR"),
+              "warnings": sum(1 for i in issues if i["severity"] == "WARNING")}
+    return {"issues": issues, "counts": counts}
+
+
+def _parse_innovus(text: str) -> dict:
+    """Innovus: '**ERROR: msg' / '**WARNING: msg'."""
+    issues = []
+    for m in re.finditer(r'\*\*(ERROR|WARNING):\s*([^\n]+)', text):
+        issues.append({"severity": m.group(1).capitalize() if m.group(1) == "WARNING" else "ERROR",
+                       "category": "innovus", "source": "",
+                       "message": m.group(2).strip()})
+    counts = {"errors": sum(1 for i in issues if i["severity"] == "ERROR"),
+              "warnings": sum(1 for i in issues if i["severity"] == "WARNING")}
+    return {"issues": issues, "counts": counts}
+
+
+def _parse_calibre(text: str) -> dict:
+    """Calibre DRC/LVS: 'ERROR: msg', 'WARNING: msg', 'Total Results: N'."""
+    issues = []
+    for m in re.finditer(r'(?:^|\n)\s*(ERROR|WARNING):\s*([^\n]+)', text):
+        issues.append({"severity": m.group(1).capitalize() if m.group(1) == "WARNING" else "ERROR",
+                       "category": "calibre", "source": "",
+                       "message": m.group(2).strip()})
+    counts = {"errors": sum(1 for i in issues if i["severity"] == "ERROR"),
+              "warnings": sum(1 for i in issues if i["severity"] == "WARNING")}
+    m = re.search(r'Total Results:\s*(\d+)', text)
+    if m and int(m.group(1)) > 0 and not issues:
+        issues.append({"severity": "ERROR", "category": "calibre_results",
+                       "source": "", "message": f"{m.group(1)} DRC/LVS result(s)"})
+        counts["errors"] += int(m.group(1))
+    return {"issues": issues, "counts": counts}
+
+
+PARSERS.update({"xcelium": _parse_xcelium, "questa": _parse_questa,
+                "genus": _parse_genus, "innovus": _parse_innovus,
+                "calibre": _parse_calibre})
+
+
 # ---------------------------------------------------------------- recommendation
 RECIPE_BY_CATEGORY = {
     "sva_assertion": "assertion_failure_triage",
@@ -149,6 +256,13 @@ RECIPE_BY_CATEGORY = {
     "resource_runlimit": "simulation_run",
     "exit_code": "simulation_run",
     "verdi": "simulation_run",
+    "xcelium_timeout": "simulation_run",
+    "questa": "uvm_verification_flow",
+    "license": "simulation_run",
+    "genus": "logic_synthesis_flow",
+    "innovus": "physical_design_flow",
+    "calibre": "signoff_tapeout",
+    "calibre_results": "signoff_tapeout",
 }
 
 
@@ -161,6 +275,18 @@ def _recommend(parsed: dict, kind: str) -> dict:
         if cat in cats:
             return {"recipe": recipe, "trigger_category": cat,
                     "next_step": f"run recipe: {recipe}"}
+    # domain default by tool kind when category is tool-specific but unmapped
+    kind_default = {"genus": "logic_synthesis_flow",
+                    "innovus": "physical_design_flow",
+                    "calibre": "signoff_tapeout",
+                    "xcelium": "simulation_run",
+                    "questa": "uvm_verification_flow",
+                    "vcs_uvm_sim": "uvm_verification_flow",
+                    "vcs_compile": "uvm_verification_flow",
+                    "verdi": "simulation_run"}.get(kind, "uvm_verification_flow")
+    if kind_default != "uvm_verification_flow":
+        return {"recipe": kind_default, "trigger_category": sorted(cats)[0],
+                "next_step": f"run recipe: {kind_default}"}
     return {"recipe": "uvm_verification_flow", "trigger_category": sorted(cats)[0],
             "next_step": "run recipe: uvm_verification_flow"}
 
@@ -211,3 +337,67 @@ def analyze_text(text: str, kind: str | None = None, source: str = "<text>") -> 
         "retry_strategy": retry_strategy_for(cls),
         "recommended": rec,
     }
+
+
+# ------------------------------------------------- manual step lookup (UG)
+_UG_QUERY_BY_KIND: dict[str, str] = {
+    "vcs_compile": "VCS compilation elaboration",
+    "vcs_uvm_sim": "VCS UVM simulation run",
+    "verdi": "Verdi waveform debug",
+    "xcelium": "Xcelium simulation run",
+    "questa": "Questa simulation run",
+    "genus": "Genus synthesis flow",
+    "innovus": "Innovus physical design flow",
+    "calibre": "Calibre rule deck run",
+    "lsf": "job submission resource limits",
+}
+
+_UG_QUERY_BY_CLASS: dict[str, str] = {
+    "timing": "timing constraints setup hold",
+    "functional": "simulation testbench debug",
+    "power_area": "power area optimization",
+    "coverage_gap": "coverage flow",
+    "connectivity": "connectivity netlist check",
+    "drc_lvs": "DRC LVS rule deck",
+    "tool_error": "license checkout environment",
+    "resource_limit": "memory limit job resources",
+    "spec_gap": "verification plan requirements",
+}
+
+
+def ug_step_queries(kind: str | None, failure_class: str | None) -> list[str]:
+    """Generate 1-2 UG manual queries for a failed (kind, failure_class) pair."""
+    queries: list[str] = []
+    base = _UG_QUERY_BY_KIND.get(kind or "")
+    if base:
+        queries.append(base)
+    extra = _UG_QUERY_BY_CLASS.get(failure_class or "")
+    if extra and extra not in queries:
+        queries.append(extra)
+    return queries[:2]
+
+
+_DVCON_QUERY_BY_CLASS: dict[str, str] = {
+    "timing": "SDC coverage closure timing constraints",
+    "functional": "assertion quality formal verification debug",
+    "power_area": "low-power verification PPA optimization",
+    "coverage_gap": "coverage closure stimulus generation",
+    "connectivity": "equivalence checking ECO netlist",
+    "drc_lvs": "sign-off physical verification flow",
+    "tool_error": "regression infrastructure job management",
+    "resource_limit": "regression management scheduling",
+    "spec_gap": "specification matching verification planning",
+}
+
+
+def dvcon_queries(kind: str | None, failure_class: str | None) -> list[str]:
+    """Generate 1-2 DVCon paper-corpus queries for a failed run."""
+    queries: list[str] = []
+    class_q = _DVCON_QUERY_BY_CLASS.get(failure_class or "")
+    if class_q:
+        queries.append(class_q)
+    if kind == "uvm":
+        queries.append("UVM testbench LLM verification IP")
+    elif kind == "coverage":
+        queries.append("coverage closure machine learning")
+    return queries[:2]

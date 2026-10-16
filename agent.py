@@ -169,11 +169,18 @@ class ChipAgent:
             steps = [by_skill[s] for s in decision["steps"] if s in by_skill]
         else:
             steps = list(recipe["steps"])
-        # resolvable = in the skill registry (MCP/remote) OR a built-in local tool
+        # resolvable = a built-in local tool, or a registry skill that can
+        # actually be dispatched (external MCP server configured). Registry
+        # skills without a server are client-session skills (plugin SKILL.md
+        # or methodology docs), not callable MCP tools — routing them to the
+        # adapter only yields "no MCP server configured".
+        routable = self.mcp.command is not None or self.mcp.url is not None
         available = [s for s in steps
-                     if s["skill"] in self.registry.skills or s["skill"] in LOCAL_TOOLS]
+                     if s["skill"] in LOCAL_TOOLS
+                     or (s["skill"] in self.registry.skills and routable)]
         missing = [s for s in steps
-                   if s["skill"] not in self.registry.skills and s["skill"] not in LOCAL_TOOLS]
+                   if s["skill"] not in LOCAL_TOOLS
+                   and not (s["skill"] in self.registry.skills and routable)]
         plan = {"key": key, "title": recipe["title"], "steps": available,
                 "missing": missing, "reason": decision.get("reason", "")}
         self._inject_domain_context(plan, intent)
@@ -451,11 +458,9 @@ class ChipAgent:
         "generate_testbench": {"out_dir"},
         "check_uvm_compliance": {"root"},
         "check_eda_tools": set(),
-        "run_simulation": {"root", "testname"},
+        "run_simulation": {"root", "out_dir", "testname"},
         "open_waveform": {"fsdb", "signals"},
         "analyze_eda_log": {"log", "path", "kind"},
-        "list_eda_wrappers": set(),
-        "run_eda_wrapper": {"tool", "args", "timeout"},
         "design_state_pipeline": {
             "op", "id", "state", "created_by", "failure_class", "summary",
             "test_name", "module", "signal", "file", "expected", "observed",

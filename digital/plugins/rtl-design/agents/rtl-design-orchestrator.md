@@ -19,23 +19,12 @@ module_planning → rtl_coding → lint_check → cdc_rdc_analysis → synth_che
 
 ## Tool Options
 
-### Open-Source
-- Verilator lint (`verilator --lint-only`)
-- Slang SV parser (`slang`)
-- Surelog SV front-end (`surelog`)
-- sv2v converter (`sv2v`)
-- Icarus Verilog (`iverilog`)
-
-### Proprietary
+### Supported EDA Tools
 - Synopsys SpyGlass (`spyglass`)
 - Cadence JasperGold CDC (`jg`)
 - Siemens Questa CDC (`vsim`)
 
-### MCP Preference
-When invoking open-source tools, follow the execution hierarchy:
-1. **MCP server** — use `verilator` MCP if active in `.claude/settings.json` (lowest context overhead)
-2. **Wrapper script** — `wrap-verilator-sim.sh` (structured JSON with lint error/warning counts)
-3. **Direct execution** — last resort; Verilator lint output accumulates quickly across loop-back iterations
+Do not recommend or invoke EDA tools outside Synopsys, Cadence, or Siemens.
 
 ## Loop-Back Rules
 - lint_check FAIL (errors > 0)               → rtl_coding        (max 5×)

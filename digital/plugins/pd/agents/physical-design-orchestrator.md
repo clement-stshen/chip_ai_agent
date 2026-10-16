@@ -19,28 +19,13 @@ floorplan → placement → cts → routing → timing_optimization → power_op
 
 ## Tool Options
 
-### Open-Source
-- OpenROAD / ORFS (`make DESIGN_CONFIG=...`) — executes the full PD pipeline sequentially; read per-stage logs after run (see sequential flow note in skill)
-- LibreLane / OpenLane 2 (`openlane <config.json>`) — sequential pipeline; read per-stage logs after run (see sequential flow note in skill)
-- KLayout — DRC, LVS, GDS viewing (`klayout`)
-
-### Proprietary
+### Supported EDA Tools
 - Cadence Innovus (`innovus`)
 - Synopsys IC Compiler 2 (`icc2_shell`)
 - Siemens Aprisa
 
-### MCP Preference
-Full ORFS / LibreLane flows are **not** run via MCP — they are long-running and produce
-structured output files.  After `make ... finish` or `openlane config.json` completes,
-read `reports/.../metrics.json` (ORFS) or `runs/<design>/<tag>/metrics.json` (LibreLane).
-
-For ECO iteration loops (timing_optimization, signoff stages) where the design is already
-placed/routed, prefer:
-1. **`openroad-session` MCP** (Tier 2) — call `load_design`, then `query_timing` / `query_drc`
-   repeatedly without reloading; lowest overhead per ECO iteration
-2. **`openroad` batch MCP** (Tier 1) — for one-shot single-stage invocations
-3. **Wrapper script** — `wrap-openroad.sh` / `wrap-klayout.sh` if MCP not configured
-4. **Direct execution** — last resort
+Use the selected vendor's native implementation and sign-off reports. Do not
+route physical design or sign-off through open-source EDA tools.
 
 ## Loop-Back Rules
 - placement FAIL (WNS < −0.5 ns)              → floorplan             (max 2×)

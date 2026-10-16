@@ -425,7 +425,7 @@ RECIPES: dict[str, dict] = {
     },
     "hls_flow": {
         "title": "高层综合: C/C++→RTL / directive 优化 / 协同仿真",
-        "trigger": ["hls", "high-level synthesis", "c to rtl", "bambu",
+        "trigger": ["hls", "high-level synthesis", "c to rtl", "catapult", "stratus",
                     "catapult", "高层综合", "c转rtl"],
         "steps": [{"skill": "hls",
                    "why": "digital-agents: C/C++→RTL、directive 优化、协同仿真"}],
@@ -463,20 +463,18 @@ RECIPES: dict[str, dict] = {
     "fpga_emulation_flow": {
         "title": "FPGA 原型验证: ASIC→FPGA 移植 / 硬件 bring-up",
         "trigger": ["fpga emulation", "fpga prototype", "asic to fpga",
-                    "fpga bring-up", "nextpnr", "fpga 验证", "fpga 移植",
+                    "fpga bring-up", "fpga 验证", "fpga 移植",
                     "原型验证"],
         "steps": [{"skill": "fpga-emulation",
                    "why": "digital-agents: ASIC→FPGA 移植、硬件 bring-up、原型软件验证"}],
     },
     "infrastructure_setup_flow": {
-        "title": "EDA 环境基础设施: 工具检测/wrapper 部署/MCP 配置",
-        "trigger": ["infrastructure setup", "deploy wrappers",
-                    "mcp server setup", "tool detection", "eda environment",
+        "title": "EDA 环境基础设施: Synopsys/Cadence/Siemens 工具检测",
+        "trigger": ["infrastructure setup", "vendor tool detection",
+                "tool detection", "eda environment",
                     "环境搭建", "工具部署", "基础设施"],
         "steps": [{"skill": "infrastructure",
-                   "why": "digital-agents: 开源+商用工具检测、wrapper 部署、MCP 配置"},
-                  {"skill": "list_eda_wrappers",
-                   "why": "列出本地已内置的 8 个输出压缩 wrapper 及可用性"}],
+                   "why": "Synopsys/Cadence/Siemens 三厂商 detect-only 检测 + 非 EDA utilities"}],
     },
     "fix_request_pipeline": {
         "title": "验证↔RTL 闭环: fix_request 检测/调度/迭代上限/divergence",
@@ -497,6 +495,72 @@ RECIPES: dict[str, dict] = {
                    "why": "digital-agents: experiences.jsonl→knowledge.md 蒸馏方法论"},
                   {"skill": "search_domain_memory",
                    "why": "TF-IDF 检索本域历史经验记录"}],
+    },
+    # ------------------------------------------------------------------
+    # DVCon 2025/2026 论文语料转化 (DVCON_2025_2026_CORPUS.md 的调用映射)
+    # 触发词避开既有宽词 (coverage/sva/uvm/testbench/regression 等) 以免
+    # 被更早的 recipe 截胡; 论文出处见语料文件。
+    # ------------------------------------------------------------------
+    "fv_failure_debug": {
+        "title": "形式化失败根因分析 (DVCon 2026 FVDebug: 因果图+LLM 取证+修复)",
+        "trigger": ["counterexample", "cex debug", "反例分析", "根因定位",
+                    "root cause 分析", "fv debug", "formal 失败根因",
+                    "fvdebug", "因果链回溯"],
+        "steps": [
+            {"skill": "evaluate_assertion", "why": "取得失败断言/性质的状态与时间点 (因果图起点)"},
+            {"skill": "explain_design_from_source", "why": "失败信号所在模块的源码级功能解释"},
+            {"skill": "agentic_debug_workflow", "why": "多轮 plan-critique 交叉取证 (for-and-against 消偏)"},
+            {"skill": "sva_assertion_generation", "why": "生成修复性断言并回验 (Fix Generator 等价物)"},
+        ],
+    },
+    "agentic_formal_flow": {
+        "title": "Agentic 形式化闭环 (DVCon 2025 Saarthi: coder/critic 反思循环)",
+        "trigger": ["agentic formal", "formal 闭环", "saarthi",
+                    "coder critic", "形式化多智能体", "sva 自动闭环"],
+        "steps": [
+            {"skill": "sva_assertion_generation", "why": "从 spec/RTL 生成候选 SVA (coder)"},
+            {"skill": "assertion_feedback_refine", "why": "用命中率/误报率反馈迭代修订 (critic 循环)"},
+            {"skill": "evaluate_assertion", "why": "在波形/设计上执行断言并收集结果"},
+            {"skill": "formal-verification", "why": "digital-agents: FPV 性质证明与 LEC"},
+        ],
+    },
+    "spec_rag_verification": {
+        "title": "Spec-RAG 双记忆检索 (DVCon 2026 Samsung: STM/LTM 动态加权)",
+        "trigger": ["spec rag", "hipporag", "知识图谱验证", "双记忆",
+                    "memory network 验证", "rag 检索", "跨版本差异检索"],
+        "steps": [
+            {"skill": "search_domain_memory", "why": "LTM: 域 knowledge.md + 历史经验检索"},
+            {"skill": "flow_guide", "why": "按 intent 定位研发相位与适用 recipe (决策逻辑)"},
+            {"skill": "analyze_eda_log", "why": "STM: 当前日志/缺陷现场的结构化分类"},
+        ],
+    },
+    "coverage_from_requirements": {
+        "title": "NL 需求→功能覆盖代码生成 (DVCon Europe 2025 LLM coverage + 自动评估)",
+        "trigger": ["nl2cov", "covgen", "coverpoint 生成",
+                    "cross coverpoint 生成", "覆盖点自动生成"],
+        "steps": [
+            {"skill": "vplan_coverage_traceability", "why": "验证计划条目↔覆盖数据回链 (自动评估底座)"},
+            {"skill": "coverage_driven_stimulus", "why": "覆盖洞→针对性激励, 关闭生成覆盖的欠激励场景"},
+        ],
+    },
+    "regression_triage": {
+        "title": "回归失败聚类/签名归并 (DVCon Europe 2025 ML triage: 12-43% TAT 缩减)",
+        "trigger": ["失败聚类", "failure triage", "triage", "失败签名",
+                    "signature 聚类", "相似失败定位", "回归聚类"],
+        "steps": [
+            {"skill": "analyze_eda_log", "why": "失败分类: failure_class + retry_strategy 签名"},
+            {"skill": "search_domain_memory", "why": "检索同类历史失败与已验证解法 (签名复制)"},
+            {"skill": "design_state_pipeline", "why": "重复失败进入 fix_request 闭环而非本地重试"},
+        ],
+    },
+    "uvm_env_factory": {
+        "title": "验证环境工厂 (DVCon Europe 2025 TBGen: 元数据驱动 + VIP 分类复用)",
+        "trigger": ["tbgen", "验证环境工厂", "vip 复用", "ivc mvc",
+                    "sysvc 分类", "testbench 工厂化"],
+        "steps": [
+            {"skill": "generate_testbench", "why": "从 UVM 1800.2-2020.3.1 模板生成标准环境骨架"},
+            {"skill": "check_uvm_compliance", "why": "IEEE 1800.2-2020 13 类静态合规门禁"},
+        ],
     },
 }
 

@@ -27,6 +27,57 @@ StageExecutor = Callable[[str, str, int], dict]
    where gates = [{name, passed(bool|None), evidence, criterion?}]"""
 
 
+_GATE_UNITS = ("ns", "ps", "pct", "mv", "um2", "kb", "mhz")
+
+
+def _norm_gate(name: str) -> str:
+    """Alphanumeric taxonomy key for one gate name."""
+    normalized = name.lower()
+    return "".join(ch for ch in normalized if ch.isalnum())
+
+
+def _gate_variants(name: str) -> set[str]:
+    """Accepted taxonomy keys for one expected gate: exact form plus the
+    unit-suffix-dropped variant ('wns_ns' also accepts 'wns'). Directional:
+    the reported name never strips its own suffix, so 'drc_violations'
+    never collides with a 'ns'-suffixed stem."""
+    variants = {_norm_gate(name)}
+    key = _norm_gate(name)
+    for unit in _GATE_UNITS:
+        suffix = "_" + unit
+        if name.lower().endswith(suffix):
+            variants.add(_norm_gate(name.lower()[:-len(suffix)]))
+            break
+    return variants
+
+
+def _gate_taxonomy_diagnostics(
+        reported: list[str], expected: dict[str, str]) -> list[str]:
+    """Step 22 gate-naming audit: explain why a reported gate never matched
+    a signoff gate. Fail-closed semantics are unchanged; this only turns a
+    silent 'unmeasured' into an actionable root-cause hint."""
+    diags: list[str] = []
+    expected_variants = {n: _gate_variants(n) for n in expected}
+    for name in reported:
+        if name in expected or name.startswith("wrapper:"):
+            continue
+        match = None
+        for n, vs in expected_variants.items():
+            if _norm_gate(name) in vs:
+                match = n
+                break
+        if match:
+            diags.append(
+                f"gate name mismatch: reported '{name}' matches expected "
+                f"'{match}' only after unit-suffix normalization — "
+                f"rename to '{match}'")
+        else:
+            diags.append(
+                f"unmatched reported gate '{name}' (intermediate/wrapper "
+                f"gates do not satisfy signoff)")
+    return diags
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
@@ -74,6 +125,7 @@ class DomainFlowRunner:
         attempts: dict[str, int] = {}
         i = 0
         trace: list[RunTrace] = []
+        gate_results = {}
         while i < len(stages):
             stage = stages[i]
             attempts[stage] = attempts.get(stage, 0) + 1
@@ -94,6 +146,13 @@ class DomainFlowRunner:
                                      else f"loop_back:{rep.retry_strategy}"),
                 reason=rep.notes))
             self._history_entry(rep, fix_request_id)
+            expected_gates = {
+                _norm_gate(name): name for name in self.flow.signoff_gates}
+            for gate in rep.gates:
+                expected_name = expected_gates.get(_norm_gate(gate.name))
+                if expected_name and expected_name != gate.name:
+                    gate_results.pop(expected_name, None)
+                gate_results[gate.name] = gate
 
             if rep.status == "PASS":
                 i += 1
@@ -102,31 +161,43 @@ class DomainFlowRunner:
             # DUT bug escalations: fix_request hand-off, never local retry
             for esc in self.flow.escalations:
                 if esc.stage == stage and esc.fix_request:
-                    return self._fix_request_escalation(rep, trace, fix_request_id)
+                    if rep.failure_class == esc.failure_class:
+                        return self._fix_request_escalation(
+                            rep, trace, fix_request_id)
                 if esc.stage == stage and not esc.fix_request:
-                    return DomainRunResult(self.domain, "escalate", trace,
-                                           False, f"{stage}: {esc.trigger}")
+                    if rep.failure_class == esc.failure_class:
+                        result = DomainRunResult(
+                            self.domain, "escalate", trace, False,
+                            f"{stage}: {esc.trigger}")
+                        self._record_experience(trace, signoff=False,
+                                                note=result.reason)
+                        return result
 
             lb = self.flow.loop_back_for(stage, rep.failure_class)
             if lb is None:
-                return DomainRunResult(
+                result = DomainRunResult(
                     self.domain, "escalate", trace, False,
                     f"no loop-back rule for ({stage}, {rep.failure_class})")
+                self._record_experience(trace, signoff=False, note=result.reason)
+                return result
             if lb.cap >= 0 and attempts[stage] > lb.cap:
-                return DomainRunResult(
+                result = DomainRunResult(
                     self.domain, "escalate", trace, False,
                     f"loop cap {lb.cap}x exhausted at {stage} "
                     f"({rep.failure_class}; last: {rep.notes or rep.failure_class}) "
                     f"— relax/supply/accept required")
+                self._record_experience(trace, signoff=False, note=result.reason)
+                return result
             i = stages.index(lb.goto)
 
-        return self._signoff_gate(trace, fix_request_id)
+        return self._signoff_gate(trace, fix_request_id, gate_results)
 
     # -- helpers ---------------------------------------------------------------
     def _normalize(self, raw: dict, stage: str) -> StageReport:
         gates = [Gate(name=g.get("name", f"gate_{j}"),
                       passed=g.get("passed"), evidence=g.get("evidence", ""),
-                      criterion=g.get("criterion", ""))
+                      criterion=g.get("criterion", ""),
+                      inferred=g.get("inferred", False))
                  for j, g in enumerate(raw.get("gates", []))]
         return StageReport(
             stage=stage,
@@ -169,6 +240,7 @@ class DomainFlowRunner:
             summary=rep.notes or f"{self.domain}/{rep.stage} DUT bug",
             test_name=rep.stage,
             module=rep.qor.get("module", ""))
+        fr["origin_domain"] = self.domain
         self.state.save()
         self._record_experience(trace, signoff=False,
                                 note=f"fix_request {fr['id']} opened")
@@ -177,8 +249,30 @@ class DomainFlowRunner:
                                f"{fr['id']} opened, pipeline-orchestrator owns "
                                f"RTL dispatch", fr["id"])
 
-    def _signoff_gate(self, trace: list[RunTrace],
-                      fr_id: str | None) -> DomainRunResult:
+    def _signoff_gate(self, trace: list[RunTrace], fr_id: str | None,
+                      gate_results: dict) -> DomainRunResult:
+        missing = []
+        failed = []
+        for name in self.flow.signoff_gates:
+            gate = gate_results.get(name)
+            if gate is None:
+                missing.append(name)
+            elif gate.passed is not True or gate.inferred:
+                failed.append(name)
+        if missing or failed:
+            details = []
+            if missing:
+                details.append("unmeasured: " + ", ".join(missing))
+            if failed:
+                details.append("not measured-PASS: " + ", ".join(failed))
+            diags = _gate_taxonomy_diagnostics(
+                list(gate_results), self.flow.signoff_gates)
+            if diags:
+                details.extend(diags)
+            reason = "signoff gates incomplete (" + "; ".join(details) + ")"
+            self._record_experience(trace, signoff=False, note=reason)
+            return DomainRunResult(self.domain, "escalate", trace, False, reason)
+
         ckpt = self.flow.checkpoint_stage
         checkpoints = self.state.data.get("pipeline_config", {}).get(
             "checkpoints", [])
@@ -220,7 +314,7 @@ class DomainFlowRunner:
         self.memory.upsert({
             "run_id": rid, "timestamp": _now(), "domain": self.domain,
             "design_name": self.state.data.get("design_name"),
-            "tool_used": self.flow.wrapper or self.flow.skill,
+            "tool_used": self.flow.vendor_tool or self.flow.skill,
             "stages_completed": [t.stage for t in trace if t.status == "PASS"],
             "loop_backs": {t.stage: t.attempt for t in trace if t.attempt > 1},
             "key_metrics": {}, "issues_encountered": [
@@ -294,6 +388,7 @@ class CrossDomainDriver:
                     "error": f"fix_request {fr_id} is {fr['status']}; "
                              "RTL must close it as fixed before re-verify"}
         domain = fr["created_by"].replace("-orchestrator", "")
+        domain = fr.get("origin_domain", domain)
         if domain not in DOMAIN_FLOWS:
             domain = "verification"
         res = DomainFlowRunner(domain, self.executor, self.state,

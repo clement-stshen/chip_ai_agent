@@ -12,7 +12,7 @@
 # version is pinned to 2.3.0 via UV_DYNAMIC_VERSIONING_BYPASS.
 set -euo pipefail
 
-SDK_SRC="/tools/Synopsys/temp/python-sdk"
+SDK_SRC="${CHIP_MCP_SDK_SRC:-/tools/Synopsys/temp/python-sdk}"
 VENV_PY="${CHIP_AGENT_PYTHON:-/tools/lsf_api/.venv/bin/python}"
 SDK_PIN="2.3.0"
 

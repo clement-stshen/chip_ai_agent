@@ -1,0 +1,43 @@
+{
+  "source": "deepseek_html_20261016_85f843.html",
+  "title": "PCIe OVM 完整 SFT 语料生成器 (Synopsys PCIe OVM VIP)",
+  "records": 90,
+  "files": {
+    "pcie_ovm_alpaca.json": {
+      "sha256": "d801a83106449f24b7a0cea086c1085c53466d85c117111922d5f3362b9a854d",
+      "bytes": 22593
+    },
+    "pcie_ovm_sft.json": {
+      "sha256": "d801a83106449f24b7a0cea086c1085c53466d85c117111922d5f3362b9a854d",
+      "bytes": 22593
+    },
+    "pcie_ovm_sft.jsonl": {
+      "sha256": "299381836abba72028b274f1b479a904c7bbb96710ebccd1b87bd62afa610605",
+      "bytes": 122673
+    },
+    "pcie_ovm_sharegpt.json": {
+      "sha256": "2cb04befc19bb1adb3cb5ed0c256ba8667b4294f23da912aaa23997740075815",
+      "bytes": 24732
+    },
+    "ug/.pcie_svt_ovm_user_guide.txt.gz": {
+      "sha256": "03209011237b01b92cf45920b69c1534af590f29ae3d1cb9a9321935124b4a13",
+      "bytes": 135474
+    },
+    "ug/pcie_chunks_meta.json": {
+      "sha256": "10cb57a240677b2c554d068f808634e230102625682468afbf18eab7e31d6fc6",
+      "bytes": 24930
+    },
+    "ug/pcie_vectors.npz": {
+      "sha256": "48ea23524817b7b2ca67651c8ca9896a1d1076638d74ebdb84e5037d817ddcee",
+      "bytes": 107383
+    },
+    "ug/structured_units.jsonl": {
+      "sha256": "aa49dfc013217e1cf7ba5767d363ecd900870046f2ca63abc37e8a56df4c70a9",
+      "bytes": 203372
+    }
+  },
+  "curated": 23,
+  "generated_from_pdf": 67,
+  "pdf_source": "pcie_doc/pcie_svt_ovm_user_guide.pdf (359 pages, Y-2026.03)",
+  "vector_index": "ug/pcie_vectors.npz (115 structured units, dim 2^18)"
+}

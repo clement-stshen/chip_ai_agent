@@ -15,12 +15,12 @@ import sys
 import tempfile
 from pathlib import Path
 
-from .eda_log_analyzer import analyze_log
+from .eda_log_analyzer import analyze_log, dvcon_queries, ug_step_queries
 from .eda_tools import discover, open_verdi, run_simulation
-from .eda_wrappers import list_wrappers, run_wrapper
 from .design_state import DesignState, DEFAULT_STATE_PATH
 from .digital_memory import DomainMemory, VALID_DOMAINS, qor_trends
-from .flow_guide import overview, phase_detail, route_intent
+from .flow_guide import (capabilities, overview, phase_detail, route_intent,
+                         post_rtl_checklist)
 from .npi_tools import (add_signals as npi_add_signals,
                         calculate_signal_duration,
                         detect_signal_sequence,
@@ -37,7 +37,7 @@ from .npi_tools import (add_signals as npi_add_signals,
                         search_in_source_code_result,
                         set_active_fsdb, show_hierarchy_tree)
 
-TEMPLATE_ROOT = Path("/tools/lsf_api/uvm_tb")
+from .eda_tools import TEMPLATE_ROOT  # noqa: F401  (site_paths-backed)
 SKILL_CHECKER = Path(__file__).parent / "skills" / "check_uvm_compliance" / "check_uvm_compliance.py"
 
 _last_generated: str | None = None
@@ -97,9 +97,19 @@ def check_eda_tools(args: dict) -> dict:
 
 
 def run_sim(args: dict) -> dict:
-    """Run a UVM simulation with VCS on the given project root."""
-    root = args.get("root") or str(TEMPLATE_ROOT)
-    return run_simulation(root, testname=args.get("testname", "fifo_smoke_test"))
+    """Run a UVM simulation with VCS on the given project root.
+
+    Accepts `out_dir` as an alias for `root`: generate_testbench reports
+    its output as out_dir, and a run context carrying out_dir must land
+    on the generated project instead of the template default.
+    """
+    root = args.get("root") or args.get("out_dir") or str(TEMPLATE_ROOT)
+    extra = args.get("extra_args") or []
+    if isinstance(extra, str):
+        extra = [extra]
+    return run_simulation(root, testname=args.get("testname", "fifo_smoke_test"),
+                          timeout=int(args.get("timeout", 600)),
+                          extra_args=extra)
 
 
 def open_waveform(args: dict) -> dict:
@@ -118,23 +128,63 @@ def analyze_eda_log(args: dict) -> dict:
                 break
     if not path:
         return {"ok": False, "error": "no log path given and no default log found"}
-    return analyze_log(path, kind=args.get("kind"))
-
-
-def list_eda_wrappers(args: dict) -> dict:
-    """Enumerate the vendored output-filtering EDA wrappers."""
-    items = list_wrappers()
-    return {"ok": True, "wrappers": items,
-            "available": [w["tool"] for w in items if w["exists"]]}
-
-
-def run_eda_wrapper(args: dict) -> dict:
-    """Run one vendored wrapper (compact JSON; exit 0 is never a pass)."""
-    tool = args.get("tool", "")
-    tool_args = args.get("args") or []
-    if isinstance(tool_args, str):
-        tool_args = [tool_args]
-    return run_wrapper(tool, tool_args, timeout=int(args.get("timeout", 300)))
+    res = analyze_log(path, kind=args.get("kind"))
+    # Failed runs: attach step-level UG manual guidance when the vector
+    # index is available. Degrade gracefully when it is not built.
+    if res.get("ok") and res.get("verdict") != "PASS" and res.get("failure_class"):
+        try:
+            from . import ug_index
+            if ug_index._load(ug_index._ug_root()) is not None:
+                queries = ug_step_queries(res.get("kind"), res.get("failure_class"))
+                manual = []
+                for q in queries:
+                    sr = ug_index.search(q, kind="steps", top_k=3)
+                    manual.append({"query": q, "hits": sr.get("hits", [])})
+                if manual:
+                    res["manual_steps"] = manual
+        except Exception as exc:  # noqa: BLE001 — guidance must never break analysis
+            res.setdefault("notes", []).append(f"manual step lookup skipped: {exc}")
+        # Cross-domain closed loop: recommend DVCon 2025/2026 paper methods
+        # for the same failure class. The seed index builds itself from the
+        # shipped corpus, so this degrades to an empty list, never an error.
+        try:
+            from . import dvcon_index
+            methods = []
+            for q in dvcon_queries(res.get("kind"), res.get("failure_class")):
+                sr = dvcon_index.search(q, top_k=2)
+                hits = sr.get("hits", [])
+                if hits:
+                    methods.append({
+                        "query": q, "failure_class": res.get("failure_class"),
+                        "papers": [{"title": h["title"], "authors": h["authors"],
+                                    "year": h["year"], "venue": h["venue"],
+                                    "excerpt": h["excerpt"]} for h in hits]})
+            if methods:
+                res["dvcon_methods"] = methods
+                # opt-in persistent learning: keep the failure_class -> paper
+                # method mapping in domain memory so the next run of the same
+                # failure class recalls it without re-searching the corpus.
+                if args.get("learn"):
+                    try:
+                        from .digital_memory import DomainMemory
+                        fc = res.get("failure_class") or "unknown"
+                        titles = [p["title"]
+                                  for m in methods for p in m["papers"]]
+                        rec = DomainMemory("verification").upsert({
+                            "run_id": f"dvcon-methods-{fc}",
+                            "tool_used": "chip_analyze_eda_log",
+                            "issues_encountered": [f"failure_class={fc}"],
+                            "fixes_applied": titles,
+                            "notes": "DVCon 2025/2026 paper methods for "
+                                     + "; ".join(m["query"] for m in methods),
+                        })
+                        res["memory_record"] = rec.get("run_id")
+                    except Exception as exc:  # noqa: BLE001
+                        res.setdefault("notes", []).append(
+                            f"dvcon memory persist skipped: {exc}")
+        except Exception as exc:  # noqa: BLE001
+            res.setdefault("notes", []).append(f"dvcon method lookup skipped: {exc}")
+    return res
 
 
 def design_state_op(args: dict) -> dict:
@@ -222,7 +272,13 @@ def flow_guide(args: dict) -> dict:
             return {"ok": False, "error": str(e)}
     if op == "route":
         return {"ok": True, **route_intent(args.get("intent", ""))}
-    return {"ok": False, "error": f"unknown op: {op} (overview|phase|route)"}
+    if op == "capabilities":
+        return {"ok": True, "capabilities": capabilities()}
+    if op == "post_rtl_checklist":
+        return {"ok": True, "post_rtl_checklist": post_rtl_checklist()}
+    return {"ok": False,
+            "error": f"unknown op: {op} "
+                     "(overview|phase|route|capabilities|post_rtl_checklist)"}
 
 
 LOCAL_TOOLS = {
@@ -232,8 +288,6 @@ LOCAL_TOOLS = {
     "run_simulation": run_sim,
     "open_waveform": open_waveform,
     "analyze_eda_log": analyze_eda_log,
-    "list_eda_wrappers": list_eda_wrappers,
-    "run_eda_wrapper": run_eda_wrapper,
     "design_state_pipeline": design_state_op,
     "search_domain_memory": search_domain_memory,
     "memory_distill": memory_distill,

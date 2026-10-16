@@ -127,12 +127,23 @@ class DomainMemory:
         """Persist a proven-good skill chain (upsert by (recipe, skills)
         keeps the newest ts) — the planner replays these variants."""
         key = json.dumps(skills, ensure_ascii=False)
-        all_recs = self.plan_variants()
+        all_recs = []
+        if self.plans_jsonl.exists():
+            for line in self.plans_jsonl.read_text(encoding="utf-8").splitlines():
+                if not line.strip():
+                    continue
+                try:
+                    all_recs.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
         old = next((r for r in all_recs
-                    if json.dumps(r.get("skills", []),
-                                  ensure_ascii=False) == key), None)
+                    if r.get("recipe") == recipe
+                    and json.dumps(r.get("skills", []),
+                                   ensure_ascii=False) == key), None)
         recs = [r for r in all_recs
-                if json.dumps(r.get("skills", []), ensure_ascii=False) != key]
+                if not (r.get("recipe") == recipe
+                        and json.dumps(r.get("skills", []),
+                                       ensure_ascii=False) == key)]
         rec = {"recipe": recipe, "skills": skills, "intent": intent,
                "run_id": run_id, "ts": time.time(),
                "successes": (old.get("successes", 0) if old else 0) + 1}
@@ -214,10 +225,10 @@ class DomainMemory:
 
 def qor_trends(design: str, domain: str | None = None,
                root: str | Path | None = None) -> dict:
-    """Cross-run QoR trending via the vendored upstream tool."""
+    """Cross-run QoR trending via the vendored upstream tool (JSON mode)."""
     script = VENDOR_ROOT / "tools" / "qor_trends.py"
     cmd = [sys.executable, str(script), "--design", design,
-           "--memory-root", str(resolve_memory_root(root))]
+           "--memory-root", str(resolve_memory_root(root)), "--json"]
     if domain:
         cmd += ["--domain", domain]
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
@@ -225,4 +236,8 @@ def qor_trends(design: str, domain: str | None = None,
         return {"ok": True, "runs_found": 0, "note": proc.stdout.strip()[-200:]}
     if proc.returncode != 0:
         return {"ok": False, "error": proc.stderr.strip()[-400:]}
-    return {"ok": True, "output": proc.stdout[-4000:]}
+    try:
+        data = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return {"ok": True, "output": proc.stdout[-4000:]}
+    return {"ok": True, "data": data, "output": proc.stdout[-4000:]}

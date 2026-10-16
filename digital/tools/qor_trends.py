@@ -33,7 +33,7 @@ Examples:
     # Compare area/timing across sky130 vs gf180mcu
     python3 tools/qor_trends.py --design aes_core --domain synthesis --group-by pdk
 
-    # Compare Yosys vs DC on sky130, with a grouped chart
+    # Compare approved synthesis results for the same design, with a grouped chart
     python3 tools/qor_trends.py --design aes_core --pdk sky130 --group-by tool --plot
 
 Exit codes:
@@ -58,6 +58,7 @@ VALID_DOMAINS = [
     "formal",
     "fpga",
     "hls",
+    "infrastructure",
     "memory-ip",
     "pd",
     "rtl-design",
@@ -72,22 +73,50 @@ VALID_GROUP_BY = ["pdk", "tool", "pdk+tool"]
 # Sentinel used when --group-by is not set (legacy single-series mode)
 _ALL_KEY = "__all__"
 
-# Numeric metric fields per domain
+# Numeric metric fields per domain.
+# Step 18 contract: every numeric-style DOMAIN_FLOWS.signoff_gates key
+# (units / counts / violations / coverage) MUST appear here, so that
+# signoff-report metrics are trendable across runs. Enforced by
+# tests::test_qor_metric_tables_cover_signoff_gates.
 NUMERIC_METRICS: dict[str, list[str]] = {
-    "architecture": ["estimated_mhz", "estimated_area_um2"],
-    "compiler": ["regression_pass_rate"],
-    "dft": ["scan_coverage_pct", "atpg_fault_coverage_pct"],
-    "firmware": ["flash_size_kb"],
-    "formal": ["proved", "failed", "unknown"],
-    "fpga": ["lut_count", "fmax_mhz"],
-    "hls": ["latency_cycles", "dsp_count"],
-    "memory-ip": ["memory_instances", "total_memory_area_um2", "worst_access_time_ns", "view_qa_errors", "projected_repair_yield_pct"],
-    "pd": ["wns_ns", "drc_violations", "lvs_errors", "gds_area_um2"],
-    "rtl-design": ["lint_errors", "cdc_violations"],
-    "soc": ["ip_blocks_integrated", "memory_map_conflicts"],
-    "sta": ["setup_wns_ns", "hold_wns_ns", "tns_ns", "failing_paths"],
-    "synthesis": ["wns_ns", "cells", "area_um2", "lec_unmatched"],
-    "verification": ["functional_coverage_pct", "regression_failures", "assertions_triggered"],
+    "architecture": ["estimated_mhz", "estimated_area_um2", "spec_coverage_pct",
+                     "high_risks_open"],
+    "compiler": ["regression_pass_rate", "compiler_regression_pass_pct",
+                 "runtime_test_pass_pct", "miscompilation_count"],
+    "dft": ["scan_coverage_pct", "atpg_fault_coverage_pct",
+            "saf_coverage_pct", "scan_drc_errors"],
+    "firmware": ["flash_size_kb", "open_p0_bugs"],
+    "formal": ["proved", "failed", "unknown", "unproven_p0_properties",
+               "lec_unmatched_points", "vacuous_proofs"],
+    "fpga": ["lut_count", "fmax_mhz", "hw_bugs_filed_to_rtl"],
+    "hls": ["latency_cycles", "dsp_count", "latch_count"],
+    "infrastructure": ["vendor_tools_detected", "utilities_detected"],
+    "memory-ip": ["memory_instances", "total_memory_area_um2", "worst_access_time_ns", "view_qa_errors", "projected_repair_yield_pct", "vmin_margin_mv"],
+    "pd": ["wns_ns", "setup_wns_ns", "hold_wns_ps", "setup_tns_ps",
+           "ir_drop_mv", "em_violations", "antenna_violations",
+            "core_area_util_pct", "drc_violations", "lvs_errors", "gds_area_um2",
+               "post_route_functional_failures", "baseline_regression_failures",
+               "total_power_mw"],
+        "rtl-design": ["lint_errors", "cdc_violations", "cdc_violations_unwaived"],
+    "soc": ["ip_blocks_integrated", "memory_map_conflicts",
+            "sim_pass_rate_pct", "connectivity_errors",
+            "axi_protocol_violations", "unqualified_ips"],
+    # wns_ns/setup_tns_ps/hold_wns_ps/hold_tns_ps aligned with
+    # DOMAIN_FLOWS.signoff_gates["sta"] (Step 17/18 cross-audit).
+    "sta": ["wns_ns", "setup_wns_ns", "hold_wns_ns", "tns_ns",
+            "setup_tns_ps", "hold_wns_ps", "hold_tns_ps", "failing_paths",
+            "sdc_errors", "undefined_clocks", "unconstrained_endpoints",
+            "setup_violations", "hold_violations"],
+    "synthesis": ["wns_ns", "cells", "area_um2", "lec_unmatched",
+              "lec_unmatched_points", "unmapped_cells", "sdc_errors", "upf_errors",
+              "undefined_clocks", "unconstrained_endpoints",
+              "gate_level_functional_failures"],
+    "verification": ["functional_coverage_pct", "regression_failures",
+                 "assertions_triggered", "open_p0_bugs", "uvm_fatal_count",
+                 "baseline_regression_failures", "reset_regression_failures",
+                 "cdc_rdc_violations_unwaived",
+                 "low_power_assertion_failures", "xprop_failures",
+                 "gate_level_functional_failures"],
 }
 
 # Metrics where higher is better (used for regression detection).
@@ -455,6 +484,11 @@ def main() -> None:
     )
     parser.add_argument("--plot", action="store_true", help="Show matplotlib chart")
     parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit structured JSON instead of the text table",
+    )
+    parser.add_argument(
         "--output",
         metavar="FILE",
         default=None,
@@ -542,6 +576,17 @@ def main() -> None:
                 file=sys.stderr,
             )
         sys.exit(1)
+
+    if args.json:
+        print(json.dumps({
+            "design": args.design,
+            "total_runs": total_runs,
+            "domains": {d: {m: {g: [[ts, v] for ts, v in pts]
+                                for g, pts in groups.items()}
+                            for m, groups in series.items()}
+                        for d, series in sorted(domain_series.items())},
+        }))
+        return
 
     print("\nQoR Trend Report")
     print(f"Design:      {args.design}")

@@ -10,7 +10,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-EXAMPLES_DEFAULT = "/tools/Synopsys/temp/uart_example"
+from .site_paths import UART_EXAMPLE as EXAMPLES_DEFAULT
 
 # path keyword -> category
 CATEGORY_RULES = [

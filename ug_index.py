@@ -20,7 +20,7 @@ from pathlib import Path
 
 import numpy as np
 
-UG_ROOT_DEFAULT = "/tools/Synopsys/temp/ug"
+from .site_paths import UG_ROOT as UG_ROOT_DEFAULT
 DIM = 1 << 18
 NGRAM = 2           # word 1-2 gram
 CHUNK_CHARS = 1200
@@ -28,6 +28,12 @@ OVERLAP_CHARS = 150
 MIN_CHUNK_CHARS = 60
 
 _WORD_RE = re.compile(r"[A-Za-z0-9_]+")
+_HEADING_RE = re.compile(
+    r"^(?:chapter\s+\d+\.?\s+[^.]{0,80}|section\s+\d+\.?\s+[^.]{0,80}"
+    r"|\d{1,2}(?:\.\d{1,2})+\.?\s+[A-Z].{0,80}"   # 3.1 / 4.2.1 sub-section
+    r"|\d{1,2}\s+[A-Z][^.]{0,80})\s*$", re.I)      # 3  Coverage Flow (no dot)
+_STEP_RE = re.compile(
+    r"^\s*(?:step\s+\d+\s*[:.]|\d{1,2}\.\s+[A-Za-z(]|[a-h]\.\s+[A-Za-z(])", re.I)
 
 
 def _ug_root() -> Path:
@@ -68,27 +74,83 @@ def extract_pdfs(root: Path | None = None) -> dict:
 
 
 # ---------------------------------------------------------------- chunking
-def _chunks_of(text: str) -> list[str]:
+def _section_title(paras: list[str]) -> str | None:
+    """A short first-line paragraph that matches a heading pattern."""
+    first = paras[0].split("\n", 1)[0].strip()
+    if len(first) <= 90 and _HEADING_RE.match(first):
+        return first
+    return None
+
+
+def _steps_ratio(paras: list[str]) -> float:
+    hits = sum(1 for p in paras if _STEP_RE.match(p))
+    return hits / max(len(paras), 1)
+
+
+def _chunks_structured(text: str) -> list[tuple[str, str, str]]:
+    """Split a manual into (chunk, section_title, kind) units.
+
+    Segmentation unit = 章节 (heading-delimited section) or 操作步骤
+    (numbered/Step-N block); CHUNK_CHARS stays a packing cap only, so a
+    step is never broken mid-list unless the whole section overflows.
+    kind ∈ {chapter, steps, prose}.
+    """
     paras = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
-    out: list[str] = []
-    buf = ""
+    sections: list[tuple[str, str, list[str]]] = []  # (title, kind, paras)
+    cur_title, cur, cur_steps = "", [], 0
     for p in paras:
-        while len(p) > CHUNK_CHARS * 2:
-            out.append(p[:CHUNK_CHARS])
-            p = p[CHUNK_CHARS - OVERLAP_CHARS:]
-        if buf and len(buf) + len(p) > CHUNK_CHARS:
-            out.append(buf)
-            buf = buf[-OVERLAP_CHARS:] + "\n" + p
-        else:
-            buf = (buf + "\n" + p) if buf else p
-    if len(buf) >= MIN_CHUNK_CHARS:
-        out.append(buf)
+        title = _section_title([p])
+        if title:
+            if cur:
+                kind = ("steps" if cur_steps >= 2
+                        else "chapter" if cur_title else "prose")
+                sections.append((cur_title, kind, cur))
+            cur_title, cur, cur_steps = title, [p], 0
+            continue
+        if _STEP_RE.match(p):
+            cur_steps += 1
+        cur.append(p)
+    if cur:
+        kind = ("steps" if cur_steps >= 2
+                else "chapter" if cur_title else "prose")
+        sections.append((cur_title, kind, cur))
+
+    out: list[tuple[str, str, str]] = []
+    for title, kind, sec in sections:
+        buf = ""
+        emitted = [False]
+
+        def _emit(b: str, _title=title, _kind=kind, _state=emitted):
+            # a titled section always yields at least one unit: the heading
+            # itself is high-value retrieval context even when the section is
+            # shorter than MIN_CHUNK_CHARS
+            if (not _state[0] and _title) or len(b.strip()) >= MIN_CHUNK_CHARS:
+                out.append((b.strip(), _title, _kind))
+                _state[0] = True
+        for p in sec:
+            while len(p) > CHUNK_CHARS * 2:
+                _emit(p[:CHUNK_CHARS])
+                p = p[CHUNK_CHARS - OVERLAP_CHARS:]
+            if buf and len(buf) + len(p) > CHUNK_CHARS:
+                _emit(buf)
+                buf = buf[-OVERLAP_CHARS:] + "\n" + p
+            else:
+                buf = (buf + "\n" + p) if buf else p
+        if buf.strip():
+            _emit(buf)
     return out
+
+
+def _chunks_of(text: str) -> list[str]:
+    """Back-compat wrapper: plain texts of the structured chunks."""
+    return [c for c, _t, _k in _chunks_structured(text)]
 
 
 def _iter_docs(root: Path):
     for gz in sorted(root.rglob(".*.txt.gz")):
-        product = "vcs" if "/vcs/" in str(gz) else ("verdi" if "/verdi/" in str(gz) else None)
+        product = ("vcs" if "/vcs/" in str(gz)
+                    else "verdi" if "/verdi/" in str(gz)
+                    else "uvm" if "/uvm/" in str(gz) else None)
         if product is None:
             continue
         try:
@@ -122,7 +184,7 @@ def build_index(root: Path | None = None) -> dict:
     df_counts = np.zeros(DIM, dtype=np.float64)  # doc freq over chunks
 
     for product, doc, text in _iter_docs(root):
-        for i, chunk in enumerate(_chunks_of(text)):
+        for i, (chunk, section, kind) in enumerate(_chunks_structured(text)):
             toks = _tokens(chunk)
             if not toks:
                 continue
@@ -131,7 +193,8 @@ def build_index(root: Path | None = None) -> dict:
             rows.append(uq)
             vals.append(cnt.astype(np.float32))
             df_counts[uq] += 1.0
-            meta.append({"product": product, "doc": doc, "chunk": i})
+            meta.append({"product": product, "doc": doc, "chunk": i,
+                         "section": section, "kind": kind})
 
     n = len(meta)
     if n == 0:
@@ -198,7 +261,7 @@ _CACHE = None
 
 
 def search(query: str, product: str | None = None, top_k: int = 5,
-           root: Path | None = None) -> dict:
+           root: Path | None = None, kind: str | None = None) -> dict:
     root = root or _ug_root()
     loaded = _load(root)
     if loaded is None:
@@ -240,11 +303,15 @@ def search(query: str, product: str | None = None, top_k: int = 5,
         m = meta[int(idx)]
         if product and m["product"] != product:
             continue
+        if kind and m.get("kind", "prose") != kind:
+            continue
         if scores[idx] <= 0:
             break
         hits.append({"score": round(float(scores[idx]), 4),
                      "product": m["product"], "doc": m["doc"],
-                     "chunk": m["chunk"]})
+                     "chunk": m["chunk"],
+                     "section": m.get("section", ""),
+                     "kind": m.get("kind", "prose")})
         if len(hits) >= top_k:
             break
     return {"query": query, "hits": hits}

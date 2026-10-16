@@ -21,7 +21,7 @@
 
 | 资料 | 格式 | 用途 |
 |---|---|---|
-| **解密后的 SKILL.md**(当前 90/92 加密) | 标准 skill 目录 | `parse_skill_md` 提取 Method/Steps/Pitfalls, 反哺 recipes |
+| **SKILL.md 技能面** | 标准 skill 目录 | `parse_skill_md` 提取 Method/Steps/Pitfalls, 反哺 recipes |
 | 内部 RTL coding guideline | PDF/MD | 生成 `rtl_code_review` 类新技能 |
 | 断言库 (SVA) | .sva | 扩充 `sva_assertion_generation` 的模式库 |
 | 覆盖率报告样例 (VCS -cm / ucdb 导出文本) | 文本/CSV | 校准 `coverage_driven_stimulus` 的阈值与分类 |
@@ -73,7 +73,7 @@
 | **空 run** | SQLite runs 表有记录但 steps 为 0 | stats 失真 | 删除 |
 | **孤儿 steps** | steps.run_id 无对应 run | 外键断裂 | 删除 |
 | **陈旧生成目录** | /tmp/uvm_tb_gen_* 超 24h | 磁盘占用 | `--prune-stale-dirs` |
-| **加密技能误计** | SKILL.md 为 Fernet blob | registry 显示可用但无法执行 | 审计标记 (不删) |
+| **无法解析的技能文件误计** | SKILL.md 内容损坏 | registry 显示可用但无法执行 | 审计标记 (不删) |
 
 ### 清洗工具 (backup-first, 永不直接销毁)
 
@@ -112,7 +112,7 @@ python3 chip_ai_agent/data_quality.py --experience exp.jsonl --clean --keep-degr
 
 ## 三、提升路线图 (资料到位后的动作)
 
-1. **解密技能包** → `parse_skill_md` 批量解析 → 自动校正 recipes 技能名
+1. **技能包** → `parse_skill_md` 批量解析 → 自动校正 recipes 技能名
 2. **导入 200+ 标注对** → LLMPlanner few-shot + KeywordPlanner trigger 扩充
 3. **导入真实失败案例** → 经验库种子 → plan() 自动注入历史修复
 4. **扩充 DUT 模板** (APB/SPI/I2C) → `generate_testbench` 参数化选型

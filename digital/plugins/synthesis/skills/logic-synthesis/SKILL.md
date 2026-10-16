@@ -47,32 +47,13 @@ quality checks before PD handoff.
 
 ## Supported EDA Tools
 
-### Open-Source
-- **Yosys** (`yosys`) — open-source synthesis suite; runs as a sequential pass pipeline (see sequential flow note below)
-- **Surelog** (`surelog`) — SystemVerilog front-end for Yosys
-- **ABC** — logic optimisation and technology mapping (invoked automatically by Yosys)
-
-### Proprietary
+### Supported EDA Tools
 - **Synopsys Design Compiler** (`dc_shell`) — industry-standard logic synthesis
 - **Cadence Genus** (`genus`) — RTL-to-netlist with concurrent optimisation
 - **Synopsys Fusion Compiler** (`fc_shell`) — combined synthesis and physical guidance
 
-### Sequential Flow Log Review (Yosys)
-
-Yosys runs its synthesis script (`yosys -c synth.ys` or `yosys -p "synth_*"`) as a
-sequential pass pipeline. Each pass (read_verilog → synth → opt → techmap → abc →
-write_verilog) executes in order; errors or warnings in early passes propagate forward.
-
-**After a Yosys run the agent must:**
-1. Read the Yosys log (stdout or redirected `yosys.log`) for:
-   - `Warning:` / `Error:` lines per pass
-   - Final statistics block: number of cells, wires, and logic depth
-   - Unmapped cells (search for `$`-prefixed cell names in the output netlist)
-2. Verify that the output netlist (`synth_netlist.v`) exists and is non-empty
-3. Parse `report_area` / `report_timing` output if ABC timing mode (`abc -constr`) was used
-
-When used inside OpenROAD Flow Scripts (ORFS) or LibreLane, the Yosys log appears at:
-`logs/<platform>/<design>/1_1_yosys.log`
+Run synthesis in the selected licensed vendor environment and inspect its native
+compile, timing, area, and unmapped-cell reports before accepting the netlist.
 
 ---
 
