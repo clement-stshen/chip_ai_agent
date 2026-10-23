@@ -53,10 +53,10 @@ bash "$CHIP_AGENT_HOME"/install_integration.sh
 1. Claude Code 注册 MCP server (user 级, `~/.claude.json`)
 2. Codex 注册 (`~/.codex/config.toml` 的 `[mcp_servers.chip_agent]`)
 3. 12 个内置方法论 SKILL.md 技能安装到 `~/.claude/skills/` 和 `~/.codex/skills/`
-   (`--all` 追加安装全部 123 个 Synopsys/Verdi 技能)
+   (`--all` 追加安装全部 123 个站点 EDA 技能)
 4. 健康检查
 
-## 暴露的 MCP 工具 (24 个, 全部带 tool annotations)
+## 暴露的 MCP 工具 (35 个, 全部带 tool annotations)
 
 | 工具 | 功能 | 只读 |
 |---|---|---|
@@ -91,7 +91,7 @@ MCP progress 通知实时上报进度。
 
 | URI | 内容 |
 |---|---|
-| `chip://skills` | 全部 160 个技能与领域分布 (含 uvm_methodology/语料技能) |
+| `chip://skills` | 全部 161 个技能与领域分布 (含 uvm_methodology/语料技能) |
 | `chip://skills/{domain}` | 单领域技能清单 |
 | `chip://runs` | 最近运行记录 (report store) |
 | `chip://design/state` | design_state.json 摘要 |
@@ -148,7 +148,7 @@ CHIP_AGENT_TRANSPORT=streamable-http CHIP_AGENT_PORT=8000 \
 claude mcp add chip-agent-http --transport http http://127.0.0.1:8000/mcp
 ```
 
-服务端启动时预热 agent 单例 (160 技能注册表扫描), 所有客户端首个调用即热。
+服务端启动时预热 agent 单例 (161 技能注册表扫描), 所有客户端首个调用即热。
 默认仍为 stdio,对现有 `.mcp.json` 零影响。
 
 ## Codex (CLI)
@@ -283,7 +283,7 @@ VS Code ─────┘               └─ legacy 模式: 零依赖 JSON-RP
                      report_store(WAL+锁)  mcp_adapter(SDK 客户端优先, 零依赖回退)
 ```
 
-**单一事实源**: 24 个工具的 name/description/schema/annotations/timeout 定义在
+**单一事实源**: 35 个工具的 name/description/schema/annotations/timeout 定义在
 `mcp_tools.py::TOOL_DEFS`,同时驱动 SDK 注册 (类型签名代码生成) 与 legacy
 TOOLS 列表,两份协议永不漂移。领域逻辑 (ChipAgent / local_tools / ...) 不变,
 仅 `agent.py` 增加操作锁 + 逐步进度回调,`report_store.py` 增加 WAL + 线程锁
@@ -294,7 +294,7 @@ loop),握手失败/服务器带噪音 banner/会话崩溃时自动退回原 sele
 
 ## 性能
 
-- 工具延迟与 legacy 持平 (warm plan ~4ms; 160 技能注册表扫描单例缓存 ~40ms)。
+- 工具延迟与 legacy 持平 (warm plan ~4ms; 161 技能注册表扫描单例缓存 ~40ms)。
 - SDK 模式启动成本 ~0.5s (pydantic/starlette 导入栈),每客户端会话仅一次。
 - streamable-HTTP 模式下服务启动即预热 agent,所有客户端首个调用即热。
 - 只读工具并发安全 (registry 只读 + sqlite WAL/锁 + agent 操作锁)。
@@ -676,8 +676,9 @@ loop),握手失败/服务器带噪音 banner/会话崩溃时自动退回原 sele
 |---|---|---|
 | 再搜索 | dvcon.org 官方技术程序全量抓取: 2025×60 + 2026×58, 与 28 条旧 seed 仅 6 条重叠 | ✅ |
 | 种子库扩充 | 118 条官方条目按 title 归一去重合并 (3 条跨 session 重复), 真实作者全名回填 8 条, 补充 session 字段 | ✅ 28→**137 篇** (2025×73 / 2026×64) |
-| 向量索引 | digest→build 重建, hashed tf-idf | ✅ 30→**144 chunks** (abstract 137 / method 7) |
-| SFT 语料 | `dvcon_index.generate_sft()`: curated 3 + seed 137 + fulltext unit 1, Alpaca JSONL | ✅ **141 条** `corpus/dvcon/dvcon_sft.jsonl` |
+| GoGoTB 入库 | arXiv 2607.26181 seed 条目 + 全文按段落/方法/结论切块 (三单元约定), 索引重建 | ✅ **139 篇** (2025×73 / 2026×65 / arXiv×1) |
+| 向量索引 | digest→build 重建, hashed tf-idf | ✅ 30→**165 chunks** (abstract 139 / method 14 / paragraph 9 / conclusion 3) |
+| SFT 语料 | `dvcon_index.generate_sft()`: curated 3 + seed 139 + fulltext unit 10, Alpaca JSONL (venue 感知指令) | ✅ **152 条** `corpus/dvcon/dvcon_sft.jsonl` |
 | FastMCP | `fastmcp_dvcon_server.py`: search_dvcon_papers + propose_verification_methodology (mcp 1.x/2.x 双兼容) | ✅ stdio 端到端冒烟 (list=2, 检索/提案均命中真实论文) |
 | 技能 | `skills/dvcon_papers/SKILL.md` (When To Use / Data Assets / Method / Pitfalls) | ✅ |
 | manifest | `corpus/dvcon/manifest.json` (SHA-256) | ✅ |

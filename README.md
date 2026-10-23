@@ -154,7 +154,7 @@ MIT 许可见 `digital/UPSTREAM_LICENSE`), 完全自包含不依赖外部路径�
 | **基础设施** | `infra_detect.py` | Synopsys/Cadence/Siemens 工具 detect-only + 非 EDA 主机工具分列; 不安装、不部署 wrapper/MCP |
 | **记忆** | `digital_memory.py` + agent 集成 | 两级记忆全链路: 规划时自动注入匹配域的 knowledge + 相关经验 (`plan.domain_knowledge_preview/domain_experience`); 运行后按域落 experiences |
 
-**MCP 工具 (24 个)**(含 2026-10 语料扩展), 新增:
+**MCP 工具 (35 个)**(含 2026-10 语料扩展), 新增:
 - `chip_design_pipeline` — plan/status/run/next/re_verify (spec→tape-out 引擎)
 - `chip_domain_flows` — 任意域的阶段/loop-back/sign-off/工具查询
 - `chip_infra_detect` — 基础设施对齐检测
@@ -200,7 +200,7 @@ Agent 内 `testbench_generation` recipe 第二步自动调用该技能内置脚�
 
 `mcp_server.py` 为**双模式 MCP server**:
 - **SDK 模式 (默认)**: 构建在官方 MCP Python SDK v2 (`MCPServer`) 之上 —
-  24 个工具全部带 tool annotations (只读工具 `readOnlyHint` 可并行调用)、
+  35 个工具全部带 tool annotations (只读工具 `readOnlyHint` 可并行调用)、
   类型化输入校验、长操作 progress 上报、10 个 resources、2 个 prompts、
   可选 streamable-HTTP (团队共享)。安装: `bash chip_ai_agent/install_sdk.sh`。
 - **Legacy 模式 (自动回退)**: 零依赖 stdio JSON-RPC (纯标准库, 与
@@ -347,7 +347,7 @@ tool_error→regenerate) + 构造的 VCS 编译/UVM 失败/通过/licence/LSF �
   check_uvm_compliance/run_simulation/coverage_driven_stimulus/
   formal-verification/vplan_coverage_traceability)。
 - **MCP server** (`mcp_server.py` v1.3.0): 默认技能目录改为 Agent 自带
-  `skills/` (135 技能 + 17 插件 + 方法论/语料技能 = 160, 0 加密); `CHIP_AGENT_EXTRA_SKILLS`
+  `skills/` (135 技能 + 17 插件 + 方法论/语料技能 = 161, unparseable=0); `CHIP_AGENT_EXTRA_SKILLS`
   环境变量 (默认 digital-chip-design-agents/plugins, `:` 分隔); Agent 实例
   单例缓存, 不再每次调用全量重扫。
 
@@ -377,8 +377,8 @@ python3 -m chip_ai_agent.cli "生成 testbench"          # → 生成 + 合规�
 chip_agent_plan("加载波形并查看占空比")                # MCP 链路: 13 步 0 missing
 ```
 
-注册表统计: `skills=160 unparseable=0`, 11 个领域 + 11 类 target 分布
-(160 = 135 包技能 + 17 插件 + 方法论/语料技能; 见第 16/19 节)。
+注册表统计: `skills=161 unparseable=0`, 11 个领域 + 11 类 target 分布
+(161 = 135 包技能 + 17 插件 + 方法论/语料技能; 见第 16/19 节)。
 已知边界: 15 个 digital-chip-design-agents 领域编排器技能 (architecture/
 sta/dft/...) 无 recipe 引用 — 它们面向跨领域流程编排, 由 LLM 直接调用,
 不进调试 recipe; `uvm_verification_flow` 的 loop-back 预算仍由 pipeline.py
@@ -481,9 +481,9 @@ sta/dft/...) 无 recipe 引用 — 它们面向跨领域流程编排, 由 LLM �
 
 回归: `tests/test_memory_learning.py` 30 项 — 总计 95 tests。
 
-## 18. NPI + Synopsys MCP 栈全面引入 (2026-10, 深度分析)
+## 18. NPI + EDA MCP 栈接入设计 (2026-10, 深度分析)
 
-对 NPI 套件与 Synopsys MCP 组件
+对 NPI 套件与 EDA MCP 组件
 (verif-agent-mcp / muilt-agent-hub / copilot MCP) 做全量反解分析后的整合:
 
 ### NPI 本地波形执行层 (`npi_tools.py`)
@@ -628,7 +628,7 @@ CHIP_AGENT_PYTHON / CHIP_AGENT_HOME 覆盖。变量清单见 INTEGRATION.md。
 
 ## 21. 文档与离线依赖包 (2026-10)
 
-- **功能说明书**: `chip_ai_agent/docs/FEATURES.md`(架构/24 工具/48 recipes/
+- **功能说明书**: `chip_ai_agent/docs/FEATURES.md`(架构/35 工具/48 recipes/
   五层学习/NPI 层/错误契约/性能基线)
 - **安装配置使用手册**: `chip_ai_agent/docs/INSTALL_CONFIG.md`
   (在线/离线安装、claude/codex/HTTP 配置、env 变量总表、故障排查)

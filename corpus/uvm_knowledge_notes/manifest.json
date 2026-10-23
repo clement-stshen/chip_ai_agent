@@ -1,0 +1,35 @@
+{
+  "source_root": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes",
+  "total_notes": 210,
+  "total_units": 1834,
+  "units_by_kind": {
+    "prose": 254,
+    "section": 12,
+    "example": 1544,
+    "flow": 9,
+    "steps": 15
+  },
+  "units_by_subsystem": {
+    "general": 148,
+    "comps": 50,
+    "phase": 9,
+    "seq": 161,
+    "config": 25,
+    "reg": 245,
+    "callback": 2,
+    "report": 24,
+    "factory": 26,
+    "tlm": 289,
+    "macros": 49,
+    "base": 730,
+    "dap": 13,
+    "dpi": 24,
+    "design_pattern": 39
+  },
+  "concept_cards": 260,
+  "files": {
+    "structured_units": "corpus/uvm_knowledge_notes/uvm_notes_structured_units.jsonl",
+    "sft": "corpus/uvm_knowledge_notes/uvm_notes_sft.jsonl",
+    "concept_cards": "corpus/uvm_knowledge_notes/uvm_notes_concept_cards.json"
+  }
+}

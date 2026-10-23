@@ -1,0 +1,76 @@
+{
+  "scan_root": "/tools/lsf_api",
+  "generated_at_unix": 1792448881.0499425,
+  "scanned": 137,
+  "accepted": 133,
+  "rejected": 4,
+  "failed": 0,
+  "scan_errors": [
+    {
+      "path": "/tools/lsf_api/platform/data/mysql/#innodb_redo",
+      "error": "[Errno 13] Permission denied: '/tools/lsf_api/platform/data/mysql/#innodb_redo'"
+    },
+    {
+      "path": "/tools/lsf_api/platform/data/mysql/#innodb_temp",
+      "error": "[Errno 13] Permission denied: '/tools/lsf_api/platform/data/mysql/#innodb_temp'"
+    },
+    {
+      "path": "/tools/lsf_api/platform/data/mysql/lsf_monitor",
+      "error": "[Errno 13] Permission denied: '/tools/lsf_api/platform/data/mysql/lsf_monitor'"
+    },
+    {
+      "path": "/tools/lsf_api/platform/data/mysql/mysql",
+      "error": "[Errno 13] Permission denied: '/tools/lsf_api/platform/data/mysql/mysql'"
+    },
+    {
+      "path": "/tools/lsf_api/platform/data/mysql/performance_schema",
+      "error": "[Errno 13] Permission denied: '/tools/lsf_api/platform/data/mysql/performance_schema'"
+    },
+    {
+      "path": "/tools/lsf_api/platform/data/mysql/sys",
+      "error": "[Errno 13] Permission denied: '/tools/lsf_api/platform/data/mysql/sys'"
+    }
+  ],
+  "files": [
+    {
+      "path": "/tools/lsf_api/frontend/index.html",
+      "format": "html",
+      "bytes": 261,
+      "accepted": false,
+      "technical_score": 0,
+      "reason": "html app shell or non-manual page",
+      "text_chars": 0,
+      "extraction": "cache"
+    },
+    {
+      "path": "/tools/lsf_api/platform/static/index.html",
+      "format": "html",
+      "bytes": 17218,
+      "accepted": false,
+      "technical_score": 0,
+      "reason": "html app shell or non-manual page",
+      "text_chars": 35,
+      "extraction": "cache"
+    },
+    {
+      "path": "/tools/lsf_api/vcs/Y-2026.03-SP1/doc/UserGuide/pdf/recommended_way_to_dump.pdf",
+      "format": "pdf",
+      "bytes": 96301,
+      "accepted": false,
+      "technical_score": 0,
+      "reason": "pdf lacks technical-manual text",
+      "text_chars": 107,
+      "extraction": "cache"
+    },
+    {
+      "path": "/tools/lsf_api/vcs/Y-2026.03-SP1/doc/UserGuide/pdf/vmm_user_guide.pdf",
+      "format": "pdf",
+      "bytes": 6692193,
+      "accepted": false,
+      "technical_score": 0,
+      "reason": "pdf lacks technical-manual text",
+      "text_chars": 93,
+      "extraction": "cache"
+    }
+  ]
+}

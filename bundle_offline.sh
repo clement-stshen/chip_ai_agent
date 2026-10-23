@@ -16,12 +16,21 @@ cp -r "$ROOT/chip_ai_agent" "$TMP/"
 cp -r "$ROOT/chip_ai_agent/wheelhouse" "$TMP/"
 # ③ 核心模板工程
 cp -r "$ROOT/uvm_tb" "$TMP/"
-# ④ 站点数据 (可选, 缺失时对应工具优雅降级)
-for src in "${CHIP_AGENT_UG_ROOT:-/tools/Synopsys/temp/ug}" \
-           "${CHIP_AGENT_UVM_ROOT:-/tools/Synopsys/temp/uvm}" \
-           "${CHIP_AGENT_NPI_ROOT:-/tools/Synopsys/temp/NPI}" \
-           "${CHIP_AGENT_EXAMPLE_UART:-/tools/Synopsys/temp/uart_example}"; do
-  if [ -e "$src" ]; then cp -r "$src" "$TMP/site_data/$(basename "$src")"; fi
+# ④ 站点数据 (可选, 缺失时对应工具优雅降级)。
+# 路径全部来自 CHIP_AGENT_* 环境变量, 脚本不携带任何站点特定绝对路径。
+PY_CODE='
+from pathlib import Path
+import os
+import importlib.util
+spec = importlib.util.spec_from_file_location(
+    "site_paths", str(Path(os.environ["AGENT"]) / "site_paths.py"))
+sp = importlib.util.module_from_spec(spec); spec.loader.exec_module(sp)
+for p in (sp.UG_ROOT, sp.UVM_ROOT, sp.NPI_ROOT, sp.UART_EXAMPLE):
+    print(p)
+'
+mapfile -t SITE_PATHS < <(AGENT="$AGENT" python3 -c "$PY_CODE" 2>/dev/null || true)
+for src in "${SITE_PATHS[@]}"; do
+  [ -n "$src" ] && [ -e "$src" ] && cp -r "$src" "$TMP/site_data/$(basename "$src")" || true
 done
 
 tar -czf "$OUT" -C "$TMP" chip_ai_agent wheelhouse uvm_tb site_data 2>/dev/null || \

@@ -1,0 +1,87 @@
+{
+  "format": "sharded-postings-v2",
+  "dim": 262144,
+  "n_rows": 254687,
+  "nnz": 19650353,
+  "target_max_bytes": 50331648,
+  "shards": [
+    {
+      "terms": "shard_000.terms.npy",
+      "post_ptr": "shard_000.post_ptr.npy",
+      "post_rows": "shard_000.post_rows.npy",
+      "post_vals": "shard_000.post_vals.npy",
+      "meta": "meta_000.npz",
+      "row_start": 0,
+      "row_end": 36387,
+      "rows": 36387,
+      "nnz": 2868396
+    },
+    {
+      "terms": "shard_001.terms.npy",
+      "post_ptr": "shard_001.post_ptr.npy",
+      "post_rows": "shard_001.post_rows.npy",
+      "post_vals": "shard_001.post_vals.npy",
+      "meta": "meta_001.npz",
+      "row_start": 36387,
+      "row_end": 68002,
+      "rows": 31615,
+      "nnz": 2627146
+    },
+    {
+      "terms": "shard_002.terms.npy",
+      "post_ptr": "shard_002.post_ptr.npy",
+      "post_rows": "shard_002.post_rows.npy",
+      "post_vals": "shard_002.post_vals.npy",
+      "meta": "meta_002.npz",
+      "row_start": 68002,
+      "row_end": 98999,
+      "rows": 30997,
+      "nnz": 2639119
+    },
+    {
+      "terms": "shard_003.terms.npy",
+      "post_ptr": "shard_003.post_ptr.npy",
+      "post_rows": "shard_003.post_rows.npy",
+      "post_vals": "shard_003.post_vals.npy",
+      "meta": "meta_003.npz",
+      "row_start": 98999,
+      "row_end": 133270,
+      "rows": 34271,
+      "nnz": 2791093
+    },
+    {
+      "terms": "shard_004.terms.npy",
+      "post_ptr": "shard_004.post_ptr.npy",
+      "post_rows": "shard_004.post_rows.npy",
+      "post_vals": "shard_004.post_vals.npy",
+      "meta": "meta_004.npz",
+      "row_start": 133270,
+      "row_end": 167193,
+      "rows": 33923,
+      "nnz": 2539484
+    },
+    {
+      "terms": "shard_005.terms.npy",
+      "post_ptr": "shard_005.post_ptr.npy",
+      "post_rows": "shard_005.post_rows.npy",
+      "post_vals": "shard_005.post_vals.npy",
+      "meta": "meta_005.npz",
+      "row_start": 167193,
+      "row_end": 207182,
+      "rows": 39989,
+      "nnz": 3072361
+    },
+    {
+      "terms": "shard_006.terms.npy",
+      "post_ptr": "shard_006.post_ptr.npy",
+      "post_rows": "shard_006.post_rows.npy",
+      "post_vals": "shard_006.post_vals.npy",
+      "meta": "meta_006.npz",
+      "row_start": 207182,
+      "row_end": 254687,
+      "rows": 47505,
+      "nnz": 3112754
+    }
+  ],
+  "created_unix": 1792565832.8512948
+}

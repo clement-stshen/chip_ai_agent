@@ -1,11 +1,11 @@
 {
   "source": "dvcon.org 2025/2026 technical sessions + proceedings",
   "title": "DVCon US 2025/2026 论文 SFT 语料 (137 篇, Step 39c)",
-  "records": 141,
+  "records": 152,
   "files": {
     "dvcon_sft.jsonl": {
-      "sha256": "247e928f418ac685aa10d1241aa3e0a7f0efb405d42391bc3c65c33d1391118f",
-      "bytes": 75985
+      "sha256": "a6c0bde3efbfcb80cf869ee9f8516dec0154eabf94f0408bea333013d3f2178c",
+      "bytes": 83457
     }
   }
 }

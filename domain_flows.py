@@ -32,6 +32,11 @@ class DomainFlow:
     domain: str
     skill: str
     stages: list[str]
+    # 四段式核心流程视图 (GoGoTB 论文框架, arXiv 2607.26181:
+    # Specification Analysis S1-S2 / Environment Construction S3-S5 /
+    # Stochastic Simulation S6-S7 / Coverage Closure S8, 覆盖核心八阶段;
+    # 其余 stages 为加固检查项, 不属于核心八阶段)
+    segments: dict[str, list[str]] = field(default_factory=dict)
     loop_backs: list[LoopBack] = field(default_factory=list)
     escalations: list[Escalation] = field(default_factory=list)
     signoff_gates: dict[str, str] = field(default_factory=dict)
@@ -110,8 +115,16 @@ DOMAIN_FLOWS: dict[str, DomainFlow] = {f.domain: f for f in [
         domain="verification", skill="functional-verification",
         stages=["tb_architecture", "test_planning", "uvm_tb_build",
                 "directed_tests", "constrained_random", "coverage_analysis",
-            "reset_regression", "cdc_rdc_tests", "low_power_upf_checks",
-            "xprop_tests", "formal_assist", "regression_signoff"],
+                "reset_regression", "cdc_rdc_tests", "low_power_upf_checks",
+                "xprop_tests", "formal_assist", "regression_signoff"],
+        # 四段 × 八核心阶段 (加固检查项 reset/cdc/low_power/xprop 为扩展项)
+        segments={
+            "规格分析": ["tb_architecture", "test_planning"],
+            "环境构建": ["uvm_tb_build"],
+            "随机仿真": ["directed_tests", "constrained_random"],
+            "覆盖率收敛": ["coverage_analysis", "formal_assist",
+                          "regression_signoff"],
+        },
         loop_backs=[
             LoopBack("uvm_tb_build", "tool_error", "uvm_tb_build", 3),
             LoopBack("uvm_tb_build", "functional", "uvm_tb_build", 3),
@@ -170,8 +183,8 @@ DOMAIN_FLOWS: dict[str, DomainFlow] = {f.domain: f for f in [
             "vacuous_proofs": "== 0",
         },
         checkpoint_stage="formal_signoff",
-        tools_synopsys=['VC Formal'],
-        tools_cadence=['JasperGold'],
+        tools_synopsys=['VC Formal', "Formality", "Conformal", "JasperGold"],
+        tools_cadence=['JasperGold', "Xcelium"],
         tools_siemens=['Questa Formal'],
         tools_utilities=[],
         vendor_tool='vcf',
@@ -312,7 +325,7 @@ DOMAIN_FLOWS: dict[str, DomainFlow] = {f.domain: f for f in [
         },
         checkpoint_stage="signoff",
         tools_synopsys=['Fusion Compiler', 'ICC2'],
-        tools_cadence=['Innovus', 'Voltus'],
+        tools_cadence=['Innovus', 'Voltus', "Calibre"],
         tools_siemens=['Calibre'],
         tools_utilities=[],
         vendor_tool='innovus',
@@ -549,5 +562,6 @@ def pipeline_plan(include_branches: bool = True) -> list[dict]:
 def _meta(d: str) -> dict:
     f = DOMAIN_FLOWS[d]
     return {"skill": f.skill, "stages": f.stages,
+            "segments": f.segments,
             "checkpoint": f.checkpoint_stage,
             "signoff_gates": f.signoff_gates}

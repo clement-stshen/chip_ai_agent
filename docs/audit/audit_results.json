@@ -1,0 +1,19 @@
+{
+  "timestamp": 1792723060.854976,
+  "modules": 44,
+  "tools": 47,
+  "local_tools": 44,
+  "rag_healthy": 7,
+  "rag_total": 7,
+  "issues": [
+    "CIRCULAR IMPORT: agent \u2192 report_store \u2192 agent",
+    "CIRCULAR IMPORT: mcp_tools \u2192 sdk_server \u2192 mcp_tools",
+    "CIRCULAR IMPORT: rag_router \u2192 rag_router",
+    "UNUSED IMPORT: agent.py: annotations",
+    "UNUSED IMPORT: cli.py: annotations",
+    "UNUSED IMPORT: corpus_convert.py: annotations",
+    "UNUSED IMPORT: data_quality.py: annotations",
+    "UNUSED IMPORT: design_pipeline.py: annotations",
+    "HARDCODED PATH: site_paths.py:125: for base in (UVM_ROOT, Path(\"/tools/Synopsys/temp/uvm\")):"
+  ]
+}

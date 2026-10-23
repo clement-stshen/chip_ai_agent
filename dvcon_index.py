@@ -357,7 +357,8 @@ def generate_sft(root: Path | None = None) -> dict:
     for entry in sorted(_seed_entries(), key=lambda e: (e["year"], e["title"])):
         if len(records) - len(_CURATED) >= MAX_GENERATED:
             break
-        inst = (f"Summarize the DVCon {entry.get('year', '')} paper "
+        inst = (f"Summarize the {entry.get('venue', 'DVCon US')} "
+                f"{entry.get('year', '')} paper "
                 f"'{entry.get('title', '')}'.")
         if inst in seen:
             continue

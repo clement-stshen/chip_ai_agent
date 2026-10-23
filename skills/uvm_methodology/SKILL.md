@@ -210,3 +210,111 @@ python3 $CHIP_AGENT_HOME/skills/check_uvm_compliance/check_uvm_compliance.py /pa
 - **field 宏丢失 UVM_ALL_ON**: 1800.2 字段宏不再隐含 all_on, 打印/比较结果
   不符合预期时先查此点。
 - **只生成不检查视为未完成; 修改模板后必须重跑合规检查**。
+
+## Methodology Decision Layer (MCP tool: chip_uvm_methodology)
+
+> **This section is machine-actionable.**  The agent should call
+> `chip_uvm_methodology(op="decide", query="...")` when building any UVM
+> component to get exact phase rules, code skeletons, handshake patterns,
+> and pitfalls before writing code.
+
+### Available Patterns
+
+| Pattern | Key | Decision When | Source Class |
+|---|---|---|---|
+| Driver | `driver` | Actively drive stimulus onto DUT | `uvm_driver#(REQ,RSP)` |
+| Monitor | `monitor` | Passively observe + broadcast | `uvm_monitor` |
+| Agent | `agent` | Container for drv+mon+sqr | `uvm_agent` |
+| Scoreboard | `scoreboard` | Transaction checking | `uvm_scoreboard` |
+| Sequence | `sequence` | Generate constrained-random items | `uvm_sequence#(T)` |
+| Env | `env` | Top-level verification hierarchy | `uvm_env` |
+| Test | `test` | Entry point, factory overrides, sequences | `uvm_test` |
+| Register Model | `register_model` | Register abstraction + adapter + predictor | `uvm_reg_block` |
+| Factory Override | `factory_override` | Runtime type substitution | `uvm_factory` |
+| Objection | `objection_lifecycle` | Phase completion coordination | `uvm_objection` |
+| TLM Connection | `tlm_connection` | Port/export/imp wiring | `uvm_port_base` |
+
+### How the Agent Uses This
+
+1. **Before writing any component**: `chip_uvm_methodology(op="pattern", pattern="driver")`
+   → returns exact `build/connect/run` phase actions, compilable code skeleton,
+   handshake API list, and 4 pitfalls to avoid.
+
+2. **When intent is ambiguous**: `chip_uvm_methodology(op="decide", query="how to check data integrity")`
+   → returns `scoreboard` as best match with rationale and alternatives.
+
+3. **Before signoff**: `chip_uvm_methodology(op="checklist", level="block_level")`
+   → returns 10-item methodology checklist.
+
+4. **Automatic injection**: When the agent calls `chip_agent_recall` with a UVM
+   intent, the methodology guidance is automatically injected into the result
+   (no extra call needed).
+
+### Cross-Reference with Other Tools
+
+| Need | Use This Tool | Then | For Deep Detail |
+|---|---|---|---|
+| "Which pattern?" | `chip_uvm_methodology(op="decide")` | — | — |
+| "Show me the code skeleton" | `chip_uvm_methodology(op="pattern")` | `code_skel` field | — |
+| "Show me the actual source" | — | `chip_uvm_method_source` | `refs.source` → class name |
+| "What does the manual say?" | — | `chip_manual_search(doc=refs.manual)` | Manual excerpt |
+| "Is my TB compliant?" | — | `chip_check_uvm_compliance` | After generation |
+
+
+## VCS DPO/ICO Performance Optimization (from official examples)
+
+### DPO — Dynamic Performance Optimization
+```bash
+# 1. Analyze (vlogan) — MUST be done before DPO compile
+vlogan -sverilog -ntb_opts uvm-1.2
+vlogan -sverilog -ntb_opts uvm-1.2 +incdir+./sv <env_files.sv>
+
+# 2. Reference compile (baseline measurement)
+vcs <top> -debug_access+all -lca -dpo -dpo_opts apps=vcsgd+user_tag=reference
+
+# 3. Learn compile (collect performance data)
+vcs <top> -debug_access+all -lca -dpo -dpo_opts mode=learn+apps=default+dbdir=dpo_learndb
+
+# 4. Merge + Dump recommendations
+dporg merge -d dpo_learndb
+dporg dump -d dpo_learndb  # → dpo_reco.csv
+
+# 5. Apply (use recommendations)
+# Edit dpo_reco.csv: change N→Y for desired optimizations
+vcs <top> -dpo -dpo_opts reco_file=dpo_reco.csv
+```
+**Key recommendations generated:**
+- `-assert novpi` — Disable VPI for assertions (compile speedup)
+- `-Mopt=-j4` — Parallel C compilation (4 jobs)
+
+### ICO — Intelligent Coverage Optimization
+```bash
+# Record-only mode (no bias, collects solver data)
+./simv +ntb_solver_bias_mode_strategy=nob \
+       +ntb_solver_bias_shared_record=./shared_record \
+       +ntb_solver_bias_wdir=work
+
+# Auto bias mode (1-10, higher = more aggressive)
+./simv +ntb_solver_bias_mode_auto=5
+
+# Coverage-focused bias
+./simv +ntb_solver_bias_mode_strategy=cov \
+       +ntb_solver_bias_shared_record=./shared_record
+
+# Prognosis (multi-seed coverage prediction)
+./simv +ntb_solver_bias_prognosis_config=2 \
+       +ntb_solver_bias_wdir=work_prognosis \
+       +ntb_solver_bias_test_name=test +ntb_random_seed=100
+
+# Coverage report
+crg -dir shared_record -report rpt_name -format both
+```
+**Confirmed by VCS:** `Note-[CNST-ICO] ICO Enabled` + `Note-[CNST-SBDRM] DistMerge`
+
+### Performance Comparison (FIFO 8×16, VCS Y-2026.03-SP2)
+| Config | Compile | Sim | Total | Speedup |
+|---|---|---|---|---|
+| Baseline | 9.91s | 0.74s | 10.65s | 1.0x |
+| DPO -j4 | 8.39s | 0.64s | 9.03s | 1.2x |
+| ICO bias=5 | 7.97s | 0.68s | 8.65s | 1.2x |
+| DPO+ICO | 7.64s | 0.59s | 8.23s | 1.3x |

@@ -11,7 +11,7 @@ Proactive memory & learning (Phase 1/2):
 """
 
 from __future__ import annotations
-
+from typing import TYPE_CHECKING
 import json
 import logging
 import os
@@ -26,7 +26,6 @@ from .experience import ExperienceStore
 from .failure_taxonomy import classify_failure, retry_strategy_for
 from .planner import KeywordPlanner
 from .recipes import RECIPES
-from .report_store import ReportStore
 from .skill_registry import SkillRegistry
 from .domain_flows import DOMAIN_FLOWS
 
@@ -114,6 +113,7 @@ class ChipAgent:
                  db_path: str | None = None, planner=None,
                  extra_skills_dirs: list[str] | None = None,
                  experience_path: str | None = None):
+        from .report_store import ReportStore, RunReport, StepResult
         # built-in methodology skills ship with the package and are always on
         builtin = str(Path(__file__).parent / "skills")
         dirs = (extra_skills_dirs or []) + [builtin]

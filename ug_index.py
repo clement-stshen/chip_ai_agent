@@ -21,11 +21,19 @@ from pathlib import Path
 import numpy as np
 
 from .site_paths import UG_ROOT as UG_ROOT_DEFAULT
+from .manual_ingest import (
+    _pack_str_col, _concat_packed, _MetaCols,
+    SHARD_NNZ_BUDGET, SHARD_META_BUDGET,
+)
+
 DIM = 1 << 18
 NGRAM = 2           # word 1-2 gram
 CHUNK_CHARS = 1200
 OVERLAP_CHARS = 150
 MIN_CHUNK_CHARS = 60
+SHARD_TARGET_BYTES = 48 * 1024 * 1024   # strictly < 50 MiB per index file
+# post_rows(i32)+post_vals(f32) per entry + terms/post_ptr amortized overhead
+UG_META_STR_COLS = ("product", "doc", "section", "kind")
 
 _WORD_RE = re.compile(r"[A-Za-z0-9_]+")
 _HEADING_RE = re.compile(
@@ -42,6 +50,11 @@ def _ug_root() -> Path:
 
 def _index_paths(root: Path) -> tuple[Path, Path]:
     return root / "ug_vectors.npz", root / "ug_chunks_meta.json"
+
+
+def _shard_paths(root: Path) -> dict[str, Path]:
+    d = root / "ug_index_shards"
+    return {"dir": d, "manifest": d / "manifest.json"}
 
 
 # ---------------------------------------------------------------- extraction
@@ -214,29 +227,91 @@ def build_index(root: Path | None = None) -> dict:
     for i in range(n):
         data[indptr[i]:indptr[i + 1]] /= norms[i]
 
-    # inverted postings over tf-idf rows
-    order = np.argsort(indices, kind="stable")
-    s_ind = indices[order]
-    s_rows = np.repeat(np.arange(n, dtype=np.int64), np.diff(indptr))[order]
-    s_dat = data[order]
-    b = np.flatnonzero(np.r_[True, s_ind[1:] != s_ind[:-1]])
-    terms = s_ind[b]
-    post_ptr = np.r_[b, len(s_ind)]
-    post_rows = s_rows
-    post_vals = s_dat
-
-    np.savez_compressed(
-        npz_path, indptr=indptr, indices=indices, data=data,
-        terms=terms, post_ptr=post_ptr, post_rows=post_rows, post_vals=post_vals,
-    )
-    meta_path.write_text(json.dumps(meta))
+    # inverted postings over tf-idf rows, persisted as < 50 MiB shards
+    sharding = _write_sharded_index(root, indptr, indices, data, meta)
+    global _CACHE
+    if _CACHE is not None and _CACHE[0] == root:
+        _CACHE = None
     return {
         "docs": len({(m["product"], m["doc"]) for m in meta}),
         "chunks": n,
         "dim": DIM,
-        "npz_bytes": npz_path.stat().st_size,
+        "index_dir": str(_shard_paths(root)["dir"]),
+        **sharding,
         "build_seconds": round(time.time() - t0, 1),
     }
+
+
+def _write_sharded_index(root: Path, indptr: np.ndarray, indices: np.ndarray,
+                         data: np.ndarray, meta: list[dict]) -> dict:
+    """Write postings + packed-meta shards (v2, every file < 50 MiB)."""
+    sp = _shard_paths(root)
+    sp["dir"].mkdir(parents=True, exist_ok=True)
+    for stale in sp["dir"].glob("*"):
+        if stale.is_file() and stale.name != "manifest.json":
+            stale.unlink()
+    n = len(meta)
+    nnz_per_row = np.diff(indptr)
+    meta_bytes = np.fromiter(
+        (sum(len(str(m.get(k, "")).encode("utf-8")) + 1
+             for k in UG_META_STR_COLS) + 8 for m in meta),
+        dtype=np.int64, count=n)
+    shards: list[dict] = []
+    a = 0
+    max_file_bytes = 0
+    while a < n:
+        b, acc, macc = a, 0, 0
+        while b < n and (
+                (acc == 0 and macc == 0)
+                or (acc + int(nnz_per_row[b]) <= SHARD_NNZ_BUDGET
+                    and macc + int(meta_bytes[b]) <= SHARD_META_BUDGET)):
+            acc += int(nnz_per_row[b])
+            macc += int(meta_bytes[b])
+            b += 1
+        seg_idx = indices[indptr[a]:indptr[b]]
+        seg_val = data[indptr[a]:indptr[b]]
+        seg_row = np.repeat(np.arange(a, b, dtype=np.int32), nnz_per_row[a:b])
+        order = np.argsort(seg_idx, kind="stable")
+        s_idx, s_row, s_val = seg_idx[order], seg_row[order], seg_val[order]
+        starts = np.flatnonzero(np.r_[True, s_idx[1:] != s_idx[:-1]])
+        sid = f"{len(shards):03d}"
+        files = {}
+        for arr_name, arr in (
+                ("terms", s_idx[starts].astype(np.int32)),
+                ("post_ptr", np.r_[starts, len(s_idx)].astype(np.int64)),
+                ("post_rows", s_row.astype(np.int32)),
+                ("post_vals", s_val.astype(np.float32))):
+            fname = f"shard_{sid}.{arr_name}.npy"
+            np.save(sp["dir"] / fname, arr)
+            files[arr_name] = fname
+            max_file_bytes = max(max_file_bytes,
+                                 (sp["dir"] / fname).stat().st_size)
+        mname = f"meta_{sid}.npz"
+        mcols: dict = {}
+        for k in UG_META_STR_COLS:
+            d, o = _pack_str_col([m.get(k, "") for m in meta[a:b]])
+            mcols[f"cd_{k}"] = d
+            mcols[f"co_{k}"] = o
+        mcols["chunk"] = np.asarray([m["chunk"] for m in meta[a:b]],
+                                    dtype=np.int64)
+        np.savez(sp["dir"] / mname, **mcols)
+        max_file_bytes = max(max_file_bytes,
+                             (sp["dir"] / mname).stat().st_size)
+        shards.append({**files, "meta": mname, "row_start": int(a),
+                       "row_end": int(b), "rows": int(b - a), "nnz": int(acc)})
+        a = b
+    manifest = {"format": "sharded-postings-v2", "dim": DIM, "n_rows": n,
+                "nnz": int(len(indices)), "target_max_bytes": SHARD_TARGET_BYTES,
+                "shards": shards, "created_unix": time.time()}
+    if max_file_bytes >= SHARD_TARGET_BYTES:
+        raise RuntimeError(
+            f"index shard {max_file_bytes} bytes >= {SHARD_TARGET_BYTES}")
+    sp["manifest"].write_text(json.dumps(manifest))
+    npz_path, meta_path = _index_paths(root)
+    for legacy in (npz_path, meta_path):
+        if legacy.exists():
+            legacy.unlink()
+    return {"shards": len(shards), "max_file_bytes": max_file_bytes}
 
 
 # ---------------------------------------------------------------- search
@@ -245,14 +320,51 @@ def _load(root: Path):
     if _CACHE is not None and _CACHE[0] == root:
         return _CACHE[1]
     npz_path, meta_path = _index_paths(root)
-    if not npz_path.exists() or not meta_path.exists():
+    sp = _shard_paths(root)
+    if sp["manifest"].exists():
+        sm = json.loads(sp["manifest"].read_text())
+        if sm.get("format") == "sharded-postings-v2":
+            shard_arrays = []
+            packed = {k: [] for k in UG_META_STR_COLS}
+            chunks = []
+            for s in sm["shards"]:
+                shard_arrays.append({k: np.load(
+                    sp["dir"] / s[k], mmap_mode="r")
+                    for k in ("terms", "post_ptr", "post_rows", "post_vals")})
+                mz = np.load(sp["dir"] / s["meta"])
+                for k in UG_META_STR_COLS:
+                    packed[k].append((mz[f"cd_{k}"], mz[f"co_{k}"]))
+                chunks.append(mz["chunk"])
+                mz.close()
+            arrs = {"shards": shard_arrays, "n_rows": sm["n_rows"], "v2": True}
+            meta = _MetaCols({**{k: _concat_packed(v)
+                                 for k, v in packed.items()},
+                              "chunk": np.concatenate(chunks)}, internal=())
+        else:
+            from concurrent.futures import ThreadPoolExecutor
+            files = [sp["dir"] / s["npz"] for s in sm["shards"]]
+
+            def _load_one(p: Path) -> dict:
+                z = np.load(p)
+                arrs = {k: z[k] for k in ("terms", "post_ptr",
+                                          "post_rows", "post_vals")}
+                z.close()
+                return arrs
+
+            with ThreadPoolExecutor(max_workers=4) as ex:
+                shard_arrays = list(ex.map(_load_one, files))
+            arrs = {"shards": shard_arrays, "n_rows": sm["n_rows"]}
+            meta = [m for s in sm["shards"]
+                    for m in json.loads((sp["dir"] / s["meta"]).read_text())]
+    elif npz_path.exists() and meta_path.exists():
+        z = np.load(npz_path)
+        arrs = {k: z[k] for k in
+                ("indptr", "indices", "data", "terms", "post_ptr",
+                 "post_rows", "post_vals")}
+        z.close()
+        meta = json.loads(meta_path.read_text())
+    else:
         return None
-    z = np.load(npz_path)
-    arrs = {k: z[k] for k in
-            ("indptr", "indices", "data", "terms", "post_ptr",
-             "post_rows", "post_vals")}
-    z.close()
-    meta = json.loads(meta_path.read_text())
     _CACHE = (root, (arrs, meta))
     return arrs, meta
 
@@ -275,21 +387,24 @@ def search(query: str, product: str | None = None, top_k: int = 5,
     np.add.at(q, hs, 1.0)
     qn = np.linalg.norm(q) or 1.0
 
-    terms = z["terms"]; post_ptr = z["post_ptr"]
-    post_rows = z["post_rows"]; post_vals = z["post_vals"]
     seen = {}
     for h in hs:
         seen[h] = seen.get(h, 0) + 1.0
-    arr_terms = terms
     hit_rows = []
     hit_vals = []
-    for h, tf_q in seen.items():
-        pos = int(np.searchsorted(arr_terms, h))
-        if pos >= len(arr_terms) or arr_terms[pos] != h:
-            continue
-        s, e = int(post_ptr[pos]), int(post_ptr[pos + 1])
-        hit_rows.append(post_rows[s:e])
-        hit_vals.append(post_vals[s:e].astype(np.float64) * tf_q)
+    shard_list = z["shards"] if "shards" in z else [z]
+    for shard in shard_list:
+        arr_terms = shard["terms"]
+        post_ptr = shard["post_ptr"]
+        post_rows = shard["post_rows"]
+        post_vals = shard["post_vals"]
+        for h, tf_q in seen.items():
+            pos = int(np.searchsorted(arr_terms, h))
+            if pos >= len(arr_terms) or arr_terms[pos] != h:
+                continue
+            s, e = int(post_ptr[pos]), int(post_ptr[pos + 1])
+            hit_rows.append(post_rows[s:e])
+            hit_vals.append(post_vals[s:e].astype(np.float64) * tf_q)
     scores = np.zeros(len(meta), dtype=np.float64)
     if hit_rows:
         all_rows = np.concatenate(hit_rows)
@@ -297,19 +412,32 @@ def search(query: str, product: str | None = None, top_k: int = 5,
         scores = np.bincount(all_rows, weights=all_vals, minlength=len(meta))
     scores /= qn
 
-    order = np.argsort(-scores)
+    if isinstance(meta, _MetaCols):
+        # v2: vectorized candidate filtering + bounded top-k preselection
+        cand = np.flatnonzero(scores > 0)
+        if product:
+            cand = cand[meta.eq_mask("product", product, cand)]
+        if kind:
+            cand = cand[meta.eq_mask("kind", kind, cand)]
+        pre = top_k * 8
+        if len(cand) > pre:
+            part = np.argpartition(-scores[cand], pre - 1)[:pre]
+            thresh = scores[cand[part]].min()
+            # keep every boundary tie: exact same order as a full stable sort
+            cand = cand[scores[cand] >= thresh]
+        cand = np.sort(cand)                      # ascending row ids
+        order = cand[np.argsort(-scores[cand], kind="stable")]
+    else:
+        order = np.argsort(-scores)
     hits = []
     for idx in order:
-        m = meta[int(idx)]
-        if product and m["product"] != product:
-            continue
-        if kind and m.get("kind", "prose") != kind:
-            continue
         if scores[idx] <= 0:
             break
+        m = (meta.row(int(idx)) if isinstance(meta, _MetaCols)
+             else meta[int(idx)])
         hits.append({"score": round(float(scores[idx]), 4),
-                     "product": m["product"], "doc": m["doc"],
-                     "chunk": m["chunk"],
+                     "product": str(m["product"]), "doc": str(m["doc"]),
+                     "chunk": int(m["chunk"]),
                      "section": m.get("section", ""),
                      "kind": m.get("kind", "prose")})
         if len(hits) >= top_k:
@@ -320,6 +448,49 @@ def search(query: str, product: str | None = None, top_k: int = 5,
 def index_status(root: Path | None = None) -> dict:
     root = root or _ug_root()
     npz_path, meta_path = _index_paths(root)
+    sp = _shard_paths(root)
+    if sp["manifest"].exists():
+        sm = json.loads(sp["manifest"].read_text())
+        if sm.get("format") == "sharded-postings-v2":
+            packed = {k: [] for k in UG_META_STR_COLS}
+            chunks = []
+            for s in sm["shards"]:
+                mz = np.load(sp["dir"] / s["meta"])
+                for k in UG_META_STR_COLS:
+                    packed[k].append((mz[f"cd_{k}"], mz[f"co_{k}"]))
+                chunks.append(mz["chunk"])
+                mz.close()
+            meta = _MetaCols({**{k: _concat_packed(v)
+                                 for k, v in packed.items()},
+                              "chunk": np.concatenate(chunks)}, internal=())
+        else:
+            meta = [m for s in sm["shards"]
+                    for m in json.loads((sp["dir"] / s["meta"]).read_text())]
+        by_prod: dict[str, int] = {}
+        n = len(meta)
+        docs: set = set()
+        if isinstance(meta, _MetaCols):
+            pd, po = meta.cols["product"]
+            dd, do = meta.cols["doc"]
+            for i in range(n):
+                p = bytes(pd[po[i]:po[i + 1]]).decode("utf-8")
+                doc = bytes(dd[do[i]:do[i + 1]]).decode("utf-8")
+                by_prod[p] = by_prod.get(p, 0) + 1
+                docs.add((p, doc))
+        else:
+            for m in meta:
+                by_prod[m["product"]] = by_prod.get(m["product"], 0) + 1
+                docs.add((m["product"], m["doc"]))
+        sizes = [p.stat().st_size for p in sorted(sp["dir"].glob("*"))
+                 if p.is_file() and p.name != "manifest.json"]
+        return {
+            "built": True, "root": str(root),
+            "docs": len(docs), "chunks": n, "chunks_by_product": by_prod,
+            "shards": len(sm["shards"]),
+            "max_shard_bytes": max(sizes, default=0),
+            "index_dir": str(sp["dir"]),
+            "dim": DIM,
+        }
     if not npz_path.exists():
         return {"built": False, "root": str(root)}
     meta = json.loads(meta_path.read_text()) if meta_path.exists() else []

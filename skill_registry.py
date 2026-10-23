@@ -36,7 +36,7 @@ DOMAIN_RULES: list[tuple[str, str]] = [
     ("design_exploration", r"hierarchy|module|port|instance|interface|top_module|design_object|micro_architecture|explain_design|import_design|reload|check_if_design|get_info|exploration|scopes"),
     ("source_search", r"grep|search|source_code|read_specific|code_pattern|always_blocks|case_statements|force_statements|tasks_and_functions|parameters"),
     ("verification_flow", r"verification|orchestration|signoff|memory-keeper"),
-    ("verification_flow", r"uvm|testbench"),
+    ("verification_flow", r"uvm|testbench|gogotb"),
     ("formal_flow", r"^formal"),
     ("rtl_design", r"rtl"),
     ("pipeline_orchestration", r"pipeline|memory-keeper"),

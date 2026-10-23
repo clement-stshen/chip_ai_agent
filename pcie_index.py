@@ -35,6 +35,141 @@ _CODE_RE = re.compile(
     r"(class\s+\w+\s+extends|`ovm_do|function\s+new|task\s+body|"
     r"factory\.set_|_cfg\.\w+\s*=|setenv\s+OVM_HOME|\+define\+)", re.M)
 _CHAPTER_RE = re.compile(r"^Chapter\s+\d+", re.I)
+_NUMBERED_RE = re.compile(r"^(\d{1,2})[.)]\s+(\S.*)$")
+_STEP_LINE_RE = re.compile(r"^\s*\d{1,2}[.)]\s+\S")
+_TITLE_WORD_RE = re.compile(r"^[A-Z][a-z0-9]+(?:[\s/&+()-][A-Z][a-z0-9]+)*$")
+_LEGAL_RE = re.compile(r"^(Copyright|Confidential|Proprietary)", re.I)
+# page furniture: running headers/footers, page numbers, TOC dotted lines
+_FURNITURE_RE = re.compile(
+    r"^(Feedback|Contents|www\.synopsys\.com|\d{1,4}|\s*)$")
+_TOC_RE = re.compile(r"\.\s*\.\s*\.|\.{4,}")
+
+
+def _looks_like_title(title: str) -> bool:
+    """Section title: short, no hex noise, word-shaped."""
+    if len(title) > 80 or re.search(r"\b[0-9A-F]{8}\b", title):
+        return False
+    return bool(_TITLE_WORD_RE.match(title))
+
+
+def _strip_furniture(paras: list[str]) -> list[str]:
+    out = []
+    for p in paras:
+        lines = [l for l in p.splitlines()
+                 if not _FURNITURE_RE.match(l) and not _TOC_RE.search(l)]
+        p2 = "\n".join(lines).strip()
+        if p2:
+            out.append(p2)
+    return out
+
+
+def _structured_units(text: str) -> list[dict]:
+    """Stage 1b: heading/step-aware units (章节/步骤/代码/正文).
+
+    Two-pass design: first mark runs of consecutively-numbered step lines
+    (1. 2. 3. ...) so procedure lists are emitted as kind=steps units.
+    Only "Chapter N" headings produce kind=chapter units; other numbered
+    titles classify as sections. Page furniture and TOC noise are stripped.
+    """
+    paras = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
+    paras = [p for p in paras
+             if not _LEGAL_RE.match(p) and not p.startswith("©")]
+    paras = _strip_furniture(paras)
+    n = len(paras)
+
+    # pass 1: step-run spans (consecutive paras numbered 1,2,3,...)
+    step_run = [False] * n
+    i = 0
+    while i < n:
+        m = _NUMBERED_RE.match(paras[i])
+        if m and int(m.group(1)) == 1 and len(paras[i].splitlines()) == 1:
+            j = i + 1
+            expect = 2
+            span = [i]
+            while j < n:
+                mj = _NUMBERED_RE.match(paras[j])
+                if mj and int(mj.group(1)) == expect \
+                        and len(paras[j].splitlines()) == 1:
+                    span.append(j)
+                    expect += 1
+                    j += 1
+                else:
+                    break
+            if len(span) >= 2:
+                for k in span:
+                    step_run[k] = True
+                i = j
+                continue
+        i += 1
+
+    units: list[dict] = []
+    chapter = ""
+    section = ""
+    buf: list[str] = []
+
+    def _flush():
+        nonlocal buf
+        body = "\n\n".join(buf).strip()
+        buf = []
+        if not body:
+            return
+        lines = body.splitlines()
+        n_steps = sum(1 for l in lines if _STEP_LINE_RE.match(l))
+        kind = ("steps" if n_steps >= 2 else
+                "code" if _CODE_RE.search(body) else "prose")
+        units.append({"chapter": chapter, "section": section,
+                      "kind": kind, "text": body[:2400]})
+
+    i = 0
+    last_chapter = ""
+    while i < n:
+        p = paras[i]
+        if step_run[i]:
+            _flush()
+            body = "\n\n".join(paras[k] for k in range(i, n) if step_run[k])
+            i = next((k for k in range(i + 1, n) if not step_run[k]), n)
+            units.append({"chapter": chapter, "section": section,
+                          "kind": "steps", "text": body[:2400]})
+            continue
+        first_line = p.splitlines()[0].strip()
+        if _CHAPTER_RE.match(first_line):
+            # PDF page headers repeat the chapter title on every page:
+            # emit a chapter unit only when the title changes
+            if first_line != last_chapter:
+                _flush()
+                last_chapter = first_line
+                chapter = first_line[:120]
+                section = ""
+                units.append({"chapter": chapter, "section": "",
+                              "kind": "chapter", "text": chapter})
+            rest = "\n".join(p.splitlines()[1:]).strip()
+            i += 1
+            if rest:
+                buf.append(rest)
+            continue
+        mnum = _NUMBERED_RE.match(p)
+        if (mnum and len(p.splitlines()) == 1
+                and _looks_like_title(mnum.group(2))):
+            _flush()
+            section = p.strip()[:120]      # numbered title -> section
+            i += 1
+            continue
+        words = p.split()
+        is_heading = (len(words) <= 14 and not p.endswith(".")
+                      and words and words[0][0].isupper()
+                      and any(w[0].isupper() for w in words[1:])
+                      and not _CODE_RE.search(p))
+        if is_heading:
+            _flush()
+            section = p.strip()[:120]
+            i += 1
+            continue
+        buf.append(p)
+        if sum(len(x) for x in buf) > 1600:
+            _flush()
+        i += 1
+    _flush()
+    return units
 
 
 def _pdf_path() -> Path:
@@ -63,49 +198,6 @@ def extract(pdf: str | Path | None = None) -> dict:
         f.write(text.encode("utf-8"))
     return {"pages": len(reader.pages), "cached": False,
             "chars": len(text), "path": str(out)}
-
-
-def _structured_units(text: str) -> list[dict]:
-    """Stage 1b: heading/step-aware structured units (章节/步骤/代码/正文)."""
-    paras = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
-    units: list[dict] = []
-    chapter = ""
-    section = ""
-    buf: list[str] = []
-
-    def _flush():
-        nonlocal buf
-        body = "\n\n".join(buf).strip()
-        buf = []
-        if not body:
-            return
-        steps = sum(1 for line in body.splitlines()
-                    if re.match(r"^\s*\d{1,2}\.\s+\S", line))
-        kind = "steps" if steps >= 2 else (
-            "code" if _CODE_RE.search(body) else "prose")
-        units.append({"chapter": chapter, "section": section,
-                      "kind": kind, "text": body[:2400]})
-
-    for p in paras:
-        if _CHAPTER_RE.match(p):
-            _flush()
-            chapter = p.strip()[:120]
-            section = ""
-            continue
-        words = p.split()
-        is_heading = (len(words) <= 14 and not p.endswith(".")
-                      and words and words[0][0].isupper()
-                      and any(w[0].isupper() for w in words[1:])
-                      and not _CODE_RE.search(p))
-        if is_heading:
-            _flush()
-            section = p.strip()[:120]
-            continue
-        buf.append(p)
-        if sum(len(x) for x in buf) > 1600:
-            _flush()
-    _flush()
-    return units
 
 
 def structured_units() -> list[dict]:
@@ -140,7 +232,7 @@ def build(pdf: str | Path | None = None) -> dict:
         df[hs] += 1.0
         meta.append({"doc": "pcie_svt_ovm_user_guide", "chunk": i,
                      "chapter": u["chapter"], "section": u["section"],
-                     "kind": u["kind"]})
+                     "kind": u["kind"], "excerpt": u["text"][:400]})
     n = len(meta)
     if n == 0:
         return {"error": "no structured units produced"}

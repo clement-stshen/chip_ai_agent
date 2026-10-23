@@ -1080,5 +1080,13 @@
   "venue": "DVCon US",
   "summary": "FVDebug transforms formal verification failure traces into actionable insights through a four-stage pipeline: causal graph synthesis (signal-event DAG from CEX), batched LLM graph scanning with for-and-against prompting, agentic insight exploration, and RTL fix generation. On SVA-Eval-Human it reaches 71.1% Pass@1 and 86.8% Pass@5 fix rates, showing explicit causal structure is fundamental to accurate root cause identification.",
   "session": "Best Paper Presentation (3rd Place)"
+ },
+ {
+  "year": 2026,
+  "title": "GoGoTB: Agentic RTL Verification with Specification-Grounded Coverage Closure",
+  "authors": "Xin Xin; Jincheng Lou; Junhui Li; Jinglin Yan; Panda Xiao; Di Wu; Haixiao Li; Weicong Lu; Weijian Fan; Xinyu Qu; Yuxiang Zhao; Min Yu; Zhixiong Di; Yibo Lin",
+  "venue": "arXiv",
+  "session": "arXiv 2607.26181 (2026-07-28)",
+  "summary": "Functional verification dominates IC front-end effort, and a bug that escapes to silicon can force a costly respin. LLM-based flows today generate components through isolated single-turn calls without shared context, leaving interface mismatches undetected and reported coverage disconnected from the specification. GoGoTB closes this loop with three subsystems: an agentic execution control layer that separates deterministic constraints from LLM reasoning at every tool-call and stage boundary; an evolvable knowledge system that dispatches methodology and design-specific knowledge on demand; and specification-grounded coverage closure that binds every coverage bin to a named specification behavior so each residual gap has a diagnosable root cause and a targeted remedy. Across 8 open-source RTL designs with no human intervention, GoGoTB achieves 100% environment generation success and average 98.4% line, 97.2% branch, 97.0% toggle, and 83.2% functional coverage - the first work to generate complete verification environments and meaningful coverage on these benchmarks."
  }
 ]

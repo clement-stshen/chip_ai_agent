@@ -1,0 +1,28 @@
+{
+  "format": "jsonl-shards-v1",
+  "stem": "units",
+  "max_target_bytes": 47185920,
+  "files": [
+    "units_00000.jsonl",
+    "units_00001.jsonl",
+    "units_00002.jsonl",
+    "units_00003.jsonl",
+    "units_00004.jsonl",
+    "units_00005.jsonl",
+    "units_00006.jsonl",
+    "units_00007.jsonl"
+  ],
+  "sizes": [
+    47185752,
+    47185493,
+    47181970,
+    47185448,
+    47094857,
+    47185634,
+    47185516,
+    10210716
+  ],
+  "total_bytes": 340415386,
+  "records": 427084,
+  "created_unix": 1792552556.7172115
+}

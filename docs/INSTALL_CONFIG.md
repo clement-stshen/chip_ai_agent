@@ -134,3 +134,23 @@ python3 -m chip_ai_agent.cli "生成 testbench" --db runs.db --history
 | NPI 工具降级 | 需真实 Verdi(`module load synopsys`),不伪造激活门 |
 | SDK 未生效 | `bash chip_ai_agent/install_sdk.sh` 或离线 wheelhouse 安装 |
 | 语料 0 命中 | 索引需重建(dvcon: build;ug: 手册放入索引根后 build) |
+
+## 8. 环境变量全表 (2026-10-19 审计核对)
+
+| 变量 | 作用 |
+|---|---|
+| CHIP_AGENT_TEMPLATE_TB | UVM 模板工程根 |
+| CHIP_AGENT_MODULEFILES | modulefile 搜索路径 (':'分隔) |
+| CHIP_AGENT_EDA_ROOTS | EDA 工具搜索根 (':'分隔) |
+| CHIP_AGENT_NPI_ROOT | NPI kit 根 (python/lib/inc) |
+| CHIP_AGENT_UVM_ROOT | Accellera UVM 参考库 |
+| CHIP_AGENT_UVM_TGZ_ROOT | UVM tarball 父目录 |
+| CHIP_AGENT_UG_ROOT | UG 手册语料根 |
+| CHIP_AGENT_DVCON_ROOT | DVCon 语料根 (默认随包 dvcon/) |
+| CHIP_AGENT_UVM_SRC_ROOT | UVM 源码知识库 (默认随包 uvm_src_kb/) |
+| CHIP_AGENT_MANUAL_SCAN_ROOT | 手册扫描根 (默认: 部署包父目录) |
+| CHIP_AGENT_TECH_MANUAL_ROOT | 手册语料输出根 (默认: 随包 corpus/technical_manuals) |
+| CHIP_AGENT_EXAMPLE_UART | Verification Academy UART 示例树 |
+| CHIP_AGENT_VERIF_AGENT_BIN/_CONFIG | verif-agent-mcp 可执行/配置 |
+| CHIP_AGENT_WHEELHOUSE / _PYTHON | 离线安装: wheelhouse 与 venv python |
+| CHIP_AGENT_HOME | install_integration.sh 的 agent 根 |

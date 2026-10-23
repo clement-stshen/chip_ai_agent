@@ -1,0 +1,111 @@
+GoGoTB: Agentic RTL Verification with Specification-Grounded Coverage Closure
+Xin Xin, Jincheng Lou, Junhui Li, Jinglin Yan, Panda Xiao, Di Wu, Haixiao Li,
+Weicong Lu, Weijian Fan, Xinyu Qu, Yuxiang Zhao, Min Yu, Zhixiong Di, Yibo Lin
+arXiv 2607.26181, submitted 2026-07-28.
+
+Functional verification dominates IC front-end engineering effort, and a single
+missed bug that escapes to silicon can force a costly respin. Recent LLMs open
+new automation opportunities, but existing LLM-based flows generate components
+through isolated single-turn calls without shared context, so interface
+mismatches go undetected and reported coverage stays disconnected from
+specification requirements. In this paper, we propose GoGoTB, an agentic
+framework for end-to-end verification closure built from three subsystems: an
+agentic execution control layer, an evolvable knowledge system, and
+specification-grounded coverage closure. Across 8 open-source RTL designs with
+no human intervention, GoGoTB achieves 100% environment generation success and
+average 98.4% line, 97.2% branch, 97.0% toggle, and 83.2% functional coverage.
+
+The pipeline runs in four phases with eight stage nodes. Specification Analysis
+(S1-S2) parses the RTL and specification into a design profile, then derives
+testpoints across seven behavioral dimensions: data boundaries, control flow,
+timing constraints, FSM state transitions, protocol compliance, error
+injection, and microarchitectural interaction. Environment Construction (S3-S5)
+converts each testpoint into a coverage model element and builds the coverage
+model, reference model, and testbench. Stochastic Simulation (S6-S7) generates
+test cases per testpoint group and runs them under an adaptive seed policy that
+stops when consecutive batches yield no gain. Coverage Closure (S8) classifies
+each uncovered bin and routes it to a targeted remedy; structurally unreachable
+bins are removed from the denominator, and a stall detector ends the loop after
+two consecutive rounds with no improvement. Closure activities span S1-S3 and
+S6-S8, not only S8.
+
+We propose a three-layer deterministic execution control architecture that
+separates deterministic constraints from LLM reasoning. Layer 1 intercepts tool
+calls: a guard blocks incorrect tools for the current stage before execution, a
+structuring step turns raw tool output into clean structured diagnostics, and a
+validation step checks that the session produced complete and compilable
+artifacts; three consecutive identical failures inject a redirect prompt, all
+independently of LLM decisions. Layer 2 enforces quality gates: an auto-repair
+step fixes common structural errors without the LLM, a hard gate blocks on
+compile failure or missing artifacts, a soft gate checks testpoint completeness
+and signal-name consistency (blocking early, downgrading to warnings as
+attempts grow), and an advisory gate performs semantic review without blocking
+progress. Layer 3 handles failure recovery: a classifier identifies the error
+category and injects targeted feedback, and after a threshold the repair scope
+expands through levels L1-L4, from a minimal single-file patch to reading full
+cross-file context to restructuring the offending component to a minimal
+correct implementation. Boundary enforcement is cross-cutting: each stage can
+access only the artifacts it needs, and the RTL source and reference model are
+immutable in later stages.
+
+Our knowledge system is an on-demand dispatch design with two libraries. The
+skill library holds ten methodology skill modules covering testbench
+construction, test planning, coverage closure, RTL analysis, simulation
+backends, and cryptographic and serial protocol patterns; a deterministic
+stage-level map selects modules without LLM judgment, injecting only a catalog
+at stage start and loading full module content on demand. The reference library
+holds design-specific knowledge (RTL, spec, testbench, testpoints of real
+designs) triggered by the design category recognized during spec parsing;
+entries are scored on three structural levels, with close matches serving as
+direct templates, partial matches as style guides, and poor matches suppressed
+entirely - preferring no injection over misleading low-similarity references.
+
+Specification-grounded coverage binds every coverage bin to a named
+specification behavior before simulation, so each bin carries a behavioral
+claim traceable to the specification. Residual gaps in S8 map to one of seven
+root-cause categories with targeted remedies: Stimulus Gap to directed test
+generation, Sequence Gap to multi-transaction directed tests, Cross Hole to
+constraint refinement, State Unreached to state-routing sequences, Timing
+Dependent to cycle-precise stimulus, Transition Gap to edge-condition tests,
+and Seed Insufficient to additional seed expansion. On the I2C design,
+functional coverage converged from 56.0% through 71.6% to 84.1%, a gain of 28
+percentage points from iterative root-cause diagnosis alone. Sign-off records
+evidence for every covered bin and the root-cause disposition of every
+residual gap, producing fully auditable reports.
+
+We present five key design judgments behind the method. Reliability depends on
+the control architecture rather than on any particular model. Knowledge
+injection is an on-demand dispatch problem: methodology knowledge maps
+deterministically to stages, design knowledge passes similarity gating, and low
+similarity suppresses dispatch. Coverage quality is determined at authoring
+time, not measurement time - testpoint completeness sets a hard ceiling on
+verification quality. The closure loop is diagnosable and bounded because the
+reason a bin is uncovered must belong to a finite set of root causes, so every
+gap is classifiable, routable, and remediable, with a stall detector bounding
+fruitless loops. The oracle is isolated: the reference model derives only from
+the specification and has no visibility into RTL implementation details, so a
+wrong oracle cannot mask a real design defect.
+
+The implementation runs on a Python-based testbench stack built on the
+CodeBuddy Agent SDK, chosen over a SystemVerilog/UVM stack because LLM
+first-pass correctness is higher; simulation uses a cycle-accurate engine
+driven through a Python co-simulation testbench layer. The eight
+evaluated designs span 291 to 1,424 lines including AES, ALU, UART, SPI, I2C,
+SHA256, and SM4. Backbone LLMs tested include Kimi-K2.5, GLM-5.1, Claude Opus
+4.6, GPT-5.4, and DeepSeek-V3.2, with Kimi-K2.5 used for the main experiments;
+the three-layer control makes environment generation succeed across all 8
+designs and 7 backbone models. The knowledge system recovers functional
+coverage from 0% to 75.3% on UART, addressing knowledge gaps rather than model
+capability gaps.
+
+In conclusion, fully automated IC functional verification with coverage tied to
+specification behaviors is achievable. The three-layer execution control makes
+environment generation succeed across all 8 designs and 7 backbone LLMs, the
+knowledge system addresses knowledge gaps rather than model capability gaps,
+and specification-grounded closure reaches an average of 83.2% functional
+coverage across all designs with a 28-point gain on I2C through iterative
+root-cause diagnosis. The primary limitation is directed test generation for
+complex multi-step protocol scenarios, where most residual gaps are Stimulus
+Gap and Sequence Gap. Future work focuses on improving LLM directed test
+generation and integrating formal methods to cover structurally hard-to-reach
+states.

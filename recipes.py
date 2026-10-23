@@ -579,6 +579,89 @@ def match_intent(text: str) -> list[str]:
     return [k for _, _, k in scored] or ["design_onboarding"]
 
 
+
+
+# ── Post-RTL trigger extension (Phase 3 integration optimization) ──
+_TRIGGER_EXTENSIONS = {
+    "sta_timing_flow": [
+        "setup hold", "timing closure", "close timing", "setup_wns",
+        "hold_wns", "timing fix", "setup hold closure", "slack",
+        "post-route timing", "timing convergence",
+    ],
+    "power_analysis": [
+        "cdc", "x-prop", "xprop", "isolation", "retention",
+        "low power", "upf simulation", "power intent", "cross domain",
+        "reset synchronizer", "cdc violation", "upf error",
+    ],
+    "formal_verification_flow": [
+        "post-synthesis", "synthesis equivalence", "formality",
+        "conformal", "eco equivalence", "gate level equivalence",
+        "sequential equivalence", "equivalence checking",
+    ],
+    "signoff_tapeout": [
+        "post-rtl", "sign-off", "full verification", "ppa regression",
+        "ppa optimization", "regression protection", "tapeout signoff",
+        "convergence", "multi-corner",
+    ],
+    "physical_design_flow": [
+        "eco", "post-route netlist", "place and route", "floorplan",
+        "clock tree synthesis",
+    ],
+    "rtl_design_flow": [
+        "fix cdc", "fix rtl", "rtl bug fix", "rtl lint fix",
+        "clock gating", "cdc fix",
+    ],
+    "uvm_verification_flow": [
+        "gate-level simulation", "sdf annotation", "gl sim",
+        "x-propagation simulation",
+    ],
+}
+for _key, _extra in _TRIGGER_EXTENSIONS.items():
+    if _key in RECIPES and isinstance(RECIPES[_key].get("trigger"), list):
+        for _trig in _extra:
+            if _trig not in RECIPES[_key]["trigger"]:
+                RECIPES[_key]["trigger"].append(_trig)
+
+
+# ── EDA tool routing triggers (compile/simv→VCS, fsdb→Verdi, cdc/lint/sdc→SpyGlass) ──
+_eda_TRIGGER_EXTENSIONS = {
+    "simulation_run": [
+        "compile", "compile rtl", "compile with vcs", "compile design",
+        "simv", "run simv", "execute simv", "vcs compile",
+        "simulation", "elaborate", "build simulation", "run_vcs",
+        "编译", "跑仿真", "运行仿真", "仿真运行",
+    ],
+    "waveform_forensics": [
+        "fsdb dump", "dump fsdb", "dump waveform", "view waveform",
+        "view fsdb", "verdi open", "open verdi", "verdi debug",
+        "waveform viewer", "fsdb viewer", "看波形", "查看波形",
+        "波形分析", "加载波形", "波形调试",
+    ],
+    "rtl_design_flow": [
+        "spyglass", "spyglass cdc", "spyglass lint", "cdc lint",
+        "cdc lint check", "cdc check", "lint check", "rtl lint",
+        "structural check", "clock domain crossing check", "sdc lint",
+        "crossing check", "spyglass analysis", "rtl check",
+    ],
+    "sta_timing_flow": [
+        "sdc", "sdc constraint", "sdc check", "check sdc", "sdc lint",
+        "check_timing", "constraint check", "clock constraint",
+        "primetime", "timing report", "constraint lint",
+    ],
+    "formal_verification_flow": [
+        "formality", "conformal", "jaspergold", "vc formal",
+        "sequential equivalence", "gate level equivalence",
+        "formal property verification", "fpv run",
+    ],
+}
+for _key, _extra in _eda_TRIGGER_EXTENSIONS.items():
+    if _key in RECIPES and isinstance(RECIPES[_key].get("trigger"), list):
+        for _trig in _extra:
+            if _trig not in RECIPES[_key]["trigger"]:
+                RECIPES[_key]["trigger"].append(_trig)
+
+
+
 def _trigger_hit(trigger: str, lowered_text: str) -> bool:
     """Substring for phrases/CJK; word-boundary for short ASCII tokens.
 

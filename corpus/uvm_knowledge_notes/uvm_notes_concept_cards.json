@@ -1,0 +1,2573 @@
+[
+ {
+  "text": "1. UVM 验证平台的启动",
+  "topic": "chapter01:初识UVM验证平台.md",
+  "tags": [
+   "general",
+   "prose",
+   "phase",
+   "sequence",
+   "test"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter01:初识UVM验证平台.md"
+ },
+ {
+  "text": "1. UVM 的树形组织结构",
+  "topic": "chapter02:Component and Object.md",
+  "tags": [
+   "comps",
+   "section",
+   "test"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter02:Component and Object.md"
+ },
+ {
+  "text": "2. uvm_object 是 UVM 中最最基本的类",
+  "topic": "chapter02:Component and Object.md",
+  "tags": [
+   "comps",
+   "prose",
+   "phase"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter02:Component and Object.md"
+ },
+ {
+  "text": "3. 经常用到的 uvm_object 和 uvm_component",
+  "topic": "chapter02:Component and Object.md",
+  "tags": [
+   "comps",
+   "prose",
+   "sequence",
+   "sequencer",
+   "driver"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter02:Component and Object.md"
+ },
+ {
+  "text": "1. UVM 中的 phase",
+  "topic": "chapter03:Phase and Objection.md",
+  "tags": [
+   "phase",
+   "prose",
+   "phase"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter03:Phase and Objection.md"
+ },
+ {
+  "text": "2. UVM 中的 objection",
+  "topic": "chapter03:Phase and Objection.md",
+  "tags": [
+   "phase",
+   "prose",
+   "phase",
+   "objection"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter03:Phase and Objection.md"
+ },
+ {
+  "text": "3. 用 domain 来划分不同的家庭",
+  "topic": "chapter03:Phase and Objection.md",
+  "tags": [
+   "phase",
+   "prose",
+   "phase"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter03:Phase and Objection.md"
+ },
+ {
+  "text": "1. field_automation 机制",
+  "topic": "chapter04:Transaction and Field_automation.md",
+  "tags": [
+   "general",
+   "prose",
+   "factory",
+   "monitor",
+   "scoreboard"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter04:Transaction and Field_automation.md"
+ },
+ {
+  "text": "2. transaction 使用时的一些技巧",
+  "topic": "chapter04:Transaction and Field_automation.md",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter04:Transaction and Field_automation.md"
+ },
+ {
+  "text": "1. UVM 中的 sequence 机制",
+  "topic": "chapter05:Sequence 机制.md",
+  "tags": [
+   "seq",
+   "prose",
+   "phase",
+   "sequence",
+   "sequencer"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter05:Sequence 机制.md"
+ },
+ {
+  "text": "2. sequence的启动与执行",
+  "topic": "chapter05:Sequence 机制.md",
+  "tags": [
+   "seq",
+   "prose",
+   "phase",
+   "sequence",
+   "sequencer"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter05:Sequence 机制.md"
+ },
+ {
+  "text": "3. 通过 sequence 来控制验证平台的关闭",
+  "topic": "chapter05:Sequence 机制.md",
+  "tags": [
+   "seq",
+   "prose",
+   "phase",
+   "objection",
+   "sequence"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter05:Sequence 机制.md"
+ },
+ {
+  "text": "4. 写出强大的 sequence",
+  "topic": "chapter05:Sequence 机制.md",
+  "tags": [
+   "seq",
+   "prose",
+   "sequence",
+   "sequencer",
+   "driver"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter05:Sequence 机制.md"
+ },
+ {
+  "text": "5. virtual sequence 的使用",
+  "topic": "chapter05:Sequence 机制.md",
+  "tags": [
+   "seq",
+   "prose",
+   "sequence"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter05:Sequence 机制.md"
+ },
+ {
+  "text": "1. config机制的本质:半个全局变量",
+  "topic": "chapter06:Config 机制.md",
+  "tags": [
+   "config",
+   "prose",
+   "phase",
+   "driver",
+   "monitor"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter06:Config 机制.md"
+ },
+ {
+  "text": "2. 省略 get 的 config",
+  "topic": "chapter06:Config 机制.md",
+  "tags": [
+   "config",
+   "prose",
+   "factory",
+   "phase",
+   "driver"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter06:Config 机制.md"
+ },
+ {
+  "text": "3. 跨层次的多重 set",
+  "topic": "chapter06:Config 机制.md",
+  "tags": [
+   "config",
+   "prose",
+   "driver",
+   "env",
+   "test"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter06:Config 机制.md"
+ },
+ {
+  "text": "5. 用专门的类来组织 config 变量",
+  "topic": "chapter06:Config 机制.md",
+  "tags": [
+   "config",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter06:Config 机制.md"
+ },
+ {
+  "text": "6. 实时的改变 config 值",
+  "topic": "chapter06:Config 机制.md",
+  "tags": [
+   "config",
+   "prose",
+   "sequence"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter06:Config 机制.md"
+ },
+ {
+  "text": "7. 在 sequence 中设置 driver 要发送的包的数量",
+  "topic": "chapter06:Config 机制.md",
+  "tags": [
+   "config",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter06:Config 机制.md"
+ },
+ {
+  "text": "1. TLM级别的通信",
+  "topic": "chapter07:UVM ports.md",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter07:UVM ports.md"
+ },
+ {
+  "text": "2. UVM中常见的port",
+  "topic": "chapter07:UVM ports.md",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter07:UVM ports.md"
+ },
+ {
+  "text": "3. UVM 中各种 port 的连接",
+  "topic": "chapter07:UVM ports.md",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter07:UVM ports.md"
+ },
+ {
+  "text": "4. UVM中port连接时的层次关系",
+  "topic": "chapter07:UVM ports.md",
+  "tags": [
+   "general",
+   "prose",
+   "monitor",
+   "agent"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter07:UVM ports.md"
+ },
+ {
+  "text": "5. 有多个 uvm_analysis_imp 存在的情况",
+  "topic": "chapter07:UVM ports.md",
+  "tags": [
+   "general",
+   "prose",
+   "monitor"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter07:UVM ports.md"
+ },
+ {
+  "text": "6. 用 fifo 实现 monitor 和 scoreboard 的通信",
+  "topic": "chapter07:UVM ports.md",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter07:UVM ports.md"
+ },
+ {
+  "text": "1. register model 中一些常用的概念",
+  "topic": "chapter08:Rregister model.md",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter08:Rregister model.md"
+ },
+ {
+  "text": "2. register model 与 UVM 验证平台",
+  "topic": "chapter08:Rregister model.md",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter08:Rregister model.md"
+ },
+ {
+  "text": "3. 搭建一个简单的 register model",
+  "topic": "chapter08:Rregister model.md",
+  "tags": [
+   "reg",
+   "prose",
+   "phase"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter08:Rregister model.md"
+ },
+ {
+  "text": "4. 把 register model 集成到验证平台中",
+  "topic": "chapter08:Rregister model.md",
+  "tags": [
+   "reg",
+   "prose",
+   "sequence",
+   "sequencer",
+   "driver"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter08:Rregister model.md"
+ },
+ {
+  "text": "5. 复杂的 register model",
+  "topic": "chapter08:Rregister model.md",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter08:Rregister model.md"
+ },
+ {
+  "text": "6. 具有多个域的寄存器",
+  "topic": "chapter08:Rregister model.md",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter08:Rregister model.md"
+ },
+ {
+  "text": "7. 跨越多个地址的寄存器",
+  "topic": "chapter08:Rregister model.md",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter08:Rregister model.md"
+ },
+ {
+  "text": "8. 跨越多个地址的寄存器",
+  "topic": "chapter08:Rregister model.md",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter08:Rregister model.md"
+ },
+ {
+  "text": "9. register model 中的常用操作",
+  "topic": "chapter08:Rregister model.md",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter08:Rregister model.md"
+ },
+ {
+  "text": "1. UVM 中 callback 的使用",
+  "topic": "chapter09:Callback.md",
+  "tags": [
+   "callback",
+   "prose",
+   "driver",
+   "callback"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter09:Callback.md"
+ },
+ {
+  "text": "1. uvm_component 的派生图",
+  "topic": "chapter10:UVM_component source code.md",
+  "tags": [
+   "comps",
+   "prose",
+   "phase",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter10:UVM_component source code.md"
+ },
+ {
+  "text": "2. uvm_component 的树形组织结构的实现",
+  "topic": "chapter10:UVM_component source code.md",
+  "tags": [
+   "comps",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter10:UVM_component source code.md"
+ },
+ {
+  "text": "3. uvm_root的应用",
+  "topic": "chapter10:UVM_component source code.md",
+  "tags": [
+   "comps",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter10:UVM_component source code.md"
+ },
+ {
+  "text": "4. uvm_root 的单实例实现",
+  "topic": "chapter10:UVM_component source code.md",
+  "tags": [
+   "comps",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter10:UVM_component source code.md"
+ },
+ {
+  "text": "5. 回顾 uvm_component 的 new 函数",
+  "topic": "chapter10:UVM_component source code.md",
+  "tags": [
+   "comps",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter10:UVM_component source code.md"
+ },
+ {
+  "text": "6. run_test 函数",
+  "topic": "chapter10:UVM_component source code.md",
+  "tags": [
+   "comps",
+   "prose",
+   "factory",
+   "test"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter10:UVM_component source code.md"
+ },
+ {
+  "text": "2. uvm_report_error 函数",
+  "topic": "chapter11:Report source code.md",
+  "tags": [
+   "report",
+   "prose",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter11:Report source code.md"
+ },
+ {
+  "text": "3. uvm_report_server",
+  "topic": "chapter11:Report source code.md",
+  "tags": [
+   "report",
+   "prose",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter11:Report source code.md"
+ },
+ {
+  "text": "4. report 函数",
+  "topic": "chapter11:Report source code.md",
+  "tags": [
+   "report",
+   "prose",
+   "driver",
+   "agent",
+   "env"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter11:Report source code.md"
+ },
+ {
+  "text": "5. UVM 对于信息打印的精细控制",
+  "topic": "chapter11:Report source code.md",
+  "tags": [
+   "report",
+   "prose",
+   "callback",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter11:Report source code.md"
+ },
+ {
+  "text": "1. [uvm_object_utils](https://github.com/jiru1997/VLSI-Design-verification-interview/blob/main/VLSI%20Design%20Verification/Functional%20Verification/UVM1.2%20source%20code%20analysis/02%3A%20uvm_macros/chapter%2002%3A%20uvm_object_defines.md) 宏",
+  "topic": "chapter12:Factory source code.md",
+  "tags": [
+   "factory",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter12:Factory source code.md"
+ },
+ {
+  "text": "2. m_uvm_object_registry_internal 宏",
+  "topic": "chapter12:Factory source code.md",
+  "tags": [
+   "factory",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter12:Factory source code.md"
+ },
+ {
+  "text": "3. uvm_object_utils_begin 宏的其它部分",
+  "topic": "chapter12:Factory source code.md",
+  "tags": [
+   "factory",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter12:Factory source code.md"
+ },
+ {
+  "text": "4. [uvm_factory](https://github.com/jiru1997/VLSI-Design-verification-interview/blob/main/VLSI%20Design%20Verification/Functional%20Verification/UVM1.2%20source%20code%20analysis/03:%20uvm_base/chapter%2003:%20uvm_factory.md) 类",
+  "topic": "chapter12:Factory source code.md",
+  "tags": [
+   "factory",
+   "prose",
+   "factory"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter12:Factory source code.md"
+ },
+ {
+  "text": "5. factory 机制的应用",
+  "topic": "chapter12:Factory source code.md",
+  "tags": [
+   "factory",
+   "prose",
+   "factory",
+   "override"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter12:Factory source code.md"
+ },
+ {
+  "text": "6. factory 机制下独特的实例化的方法",
+  "topic": "chapter12:Factory source code.md",
+  "tags": [
+   "factory",
+   "prose",
+   "factory"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter12:Factory source code.md"
+ },
+ {
+  "text": "7. factory 机制的反思",
+  "topic": "chapter12:Factory source code.md",
+  "tags": [
+   "factory",
+   "prose",
+   "factory"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter12:Factory source code.md"
+ },
+ {
+  "text": "8. uvm_component_utils 宏",
+  "topic": "chapter12:Factory source code.md",
+  "tags": [
+   "factory",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter12:Factory source code.md"
+ },
+ {
+  "text": "9. 其它用于 factory 注册的宏",
+  "topic": "chapter12:Factory source code.md",
+  "tags": [
+   "factory",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter12:Factory source code.md"
+ },
+ {
+  "text": "10. override 功能",
+  "topic": "chapter12:Factory source code.md",
+  "tags": [
+   "factory",
+   "prose",
+   "override",
+   "driver"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter12:Factory source code.md"
+ },
+ {
+  "text": "11. 类型被 override 时实例的创建",
+  "topic": "chapter12:Factory source code.md",
+  "tags": [
+   "factory",
+   "section",
+   "override",
+   "driver",
+   "agent"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter12:Factory source code.md"
+ },
+ {
+  "text": "13. set_inst_override_by_type",
+  "topic": "chapter12:Factory source code.md",
+  "tags": [
+   "factory",
+   "prose",
+   "factory",
+   "override",
+   "phase"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter12:Factory source code.md"
+ },
+ {
+  "text": "15. find_override_by_name 函数",
+  "topic": "chapter12:Factory source code.md",
+  "tags": [
+   "factory",
+   "prose",
+   "override",
+   "driver",
+   "agent"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter12:Factory source code.md"
+ },
+ {
+  "text": "16. override 功能总结",
+  "topic": "chapter12:Factory source code.md",
+  "tags": [
+   "factory",
+   "prose",
+   "override"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter12:Factory source code.md"
+ },
+ {
+  "text": "17. factory 功能总结",
+  "topic": "chapter12:Factory source code.md",
+  "tags": [
+   "factory",
+   "prose",
+   "override"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter12:Factory source code.md"
+ },
+ {
+  "text": "1. 探索 phase",
+  "topic": "chapter13:Phase source code.md",
+  "tags": [
+   "phase",
+   "prose",
+   "test"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter13:Phase source code.md"
+ },
+ {
+  "text": "2. 初识 uvm_domain",
+  "topic": "chapter13:Phase source code.md",
+  "tags": [
+   "phase",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter13:Phase source code.md"
+ },
+ {
+  "text": "3. uvm_domain 类小结",
+  "topic": "chapter13:Phase source code.md",
+  "tags": [
+   "phase",
+   "prose",
+   "phase"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter13:Phase source code.md"
+ },
+ {
+  "text": "4.浅探 uvm_phase",
+  "topic": "chapter13:Phase source code.md",
+  "tags": [
+   "phase",
+   "prose",
+   "phase"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter13:Phase source code.md"
+ },
+ {
+  "text": "5.uvm_build_phase",
+  "topic": "chapter13:Phase source code.md",
+  "tags": [
+   "phase",
+   "prose",
+   "phase"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter13:Phase source code.md"
+ },
+ {
+  "text": "1.资源的存放形式",
+  "topic": "chapter15:Config_db source code.md",
+  "tags": [
+   "config",
+   "prose",
+   "config_db",
+   "driver",
+   "agent"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter15:Config_db source code.md"
+ },
+ {
+  "text": "2.资源的存放地点",
+  "topic": "chapter15:Config_db source code.md",
+  "tags": [
+   "config",
+   "prose",
+   "resource"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter15:Config_db source code.md"
+ },
+ {
+  "text": "3.资源的写入",
+  "topic": "chapter15:Config_db source code.md",
+  "tags": [
+   "config",
+   "prose",
+   "resource"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter15:Config_db source code.md"
+ },
+ {
+  "text": "4.资源的读出",
+  "topic": "chapter15:Config_db source code.md",
+  "tags": [
+   "config",
+   "prose",
+   "resource"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter15:Config_db source code.md"
+ },
+ {
+  "text": "5.uvm_config_db 类对 resource_db 机制的扩展",
+  "topic": "chapter15:Config_db source code.md",
+  "tags": [
+   "config",
+   "prose",
+   "phase",
+   "config_db",
+   "resource"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter15:Config_db source code.md"
+ },
+ {
+  "text": "1.TLM 端口简介",
+  "topic": "chapter16:TLM 1.0 source code.md",
+  "tags": [
+   "tlm",
+   "prose",
+   "sequence",
+   "sequencer",
+   "driver"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter16:TLM 1.0 source code.md"
+ },
+ {
+  "text": "2.uvm_port_base 类",
+  "topic": "chapter16:TLM 1.0 source code.md",
+  "tags": [
+   "tlm",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter16:TLM 1.0 source code.md"
+ },
+ {
+  "text": "3.resolve_bindings",
+  "topic": "chapter16:TLM 1.0 source code.md",
+  "tags": [
+   "tlm",
+   "prose",
+   "phase"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter16:TLM 1.0 source code.md"
+ },
+ {
+  "text": "4.uvm_*_imp",
+  "topic": "chapter16:TLM 1.0 source code.md",
+  "tags": [
+   "tlm",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter16:TLM 1.0 source code.md"
+ },
+ {
+  "text": "5.uvm_*_port 与 uvm_*_export",
+  "topic": "chapter16:TLM 1.0 source code.md",
+  "tags": [
+   "tlm",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter16:TLM 1.0 source code.md"
+ },
+ {
+  "text": "5.uvm_analysis_*",
+  "topic": "chapter16:TLM 1.0 source code.md",
+  "tags": [
+   "tlm",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter16:TLM 1.0 source code.md"
+ },
+ {
+  "text": "6.fifo 的使用",
+  "topic": "chapter16:TLM 1.0 source code.md",
+  "tags": [
+   "tlm",
+   "prose",
+   "tlm"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter16:TLM 1.0 source code.md"
+ },
+ {
+  "text": "7.sequencer 与 driver 之间的连接关系",
+  "topic": "chapter16:TLM 1.0 source code.md",
+  "tags": [
+   "tlm",
+   "prose",
+   "sequence",
+   "sequencer",
+   "driver"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter16:TLM 1.0 source code.md"
+ },
+ {
+  "text": "1.uvm_register_cb 宏",
+  "topic": "chapter18:Callback source code.md",
+  "tags": [
+   "callback",
+   "prose",
+   "callback"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter18:Callback source code.md"
+ },
+ {
+  "text": "1.uvm_do 系列宏",
+  "topic": "chapter19:sequence source code.md",
+  "tags": [
+   "seq",
+   "prose",
+   "sequence",
+   "sequencer"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter19:sequence source code.md"
+ },
+ {
+  "text": "2.uvm_create_on 宏",
+  "topic": "chapter19:sequence source code.md",
+  "tags": [
+   "seq",
+   "prose",
+   "sequence"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter19:sequence source code.md"
+ },
+ {
+  "text": "3. sequence_item 的产生与发送",
+  "topic": "chapter19:sequence source code.md",
+  "tags": [
+   "seq",
+   "prose",
+   "sequence",
+   "sequencer"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/chapter19:sequence source code.md"
+ },
+ {
+  "text": "readme",
+  "topic": "readme.md",
+  "tags": [
+   "general",
+   "prose",
+   "phase",
+   "objection",
+   "sequence"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.1 source code analysis_副本/readme.md"
+ },
+ {
+  "text": "🗽 chapter 03: uvm_message_defines",
+  "topic": "02: uvm_macros",
+  "tags": [
+   "macros",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/02: uvm_macros/chapter 03: uvm_message_defines.md"
+ },
+ {
+  "text": "🗽 chapter 05: uvm_sequence_defines",
+  "topic": "02: uvm_macros",
+  "tags": [
+   "macros",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/02: uvm_macros/chapter 05: uvm_sequence_defines.md"
+ },
+ {
+  "text": "🗽 chapter 03: uvm_factory",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose",
+   "factory",
+   "override"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 03: uvm_factory.md"
+ },
+ {
+  "text": "🗽 chapter 07: uvm_phase",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 07: uvm_phase.md"
+ },
+ {
+  "text": "🗽 chapter 11: uvm_common_phases",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 11: uvm_common_phases.md"
+ },
+ {
+  "text": "chapter 12: uvm_topdown_phase",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 12: uvm_topdown_phase.md"
+ },
+ {
+  "text": "chapter 13: uvm_runtime_phases",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 13: uvm_runtime_phases.md"
+ },
+ {
+  "text": "🗽 chapter 14: uvm_report_object",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "section",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 14: uvm_report_object.md"
+ },
+ {
+  "text": "chapter 15: uvm_report_handler",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose",
+   "override",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 15: uvm_report_handler.md"
+ },
+ {
+  "text": "🗽 chapter 16: uvm_report_server",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "section",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 16: uvm_report_server.md"
+ },
+ {
+  "text": "execute_report_message",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 16: uvm_report_server.md"
+ },
+ {
+  "text": "Inputs",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 16: uvm_report_server.md"
+ },
+ {
+  "text": "Recording (UVM_RM_RECORD)",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 16: uvm_report_server.md"
+ },
+ {
+  "text": "Display and Logging",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 16: uvm_report_server.md"
+ },
+ {
+  "text": "Count and Exit handling",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 16: uvm_report_server.md"
+ },
+ {
+  "text": "set_context",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 17: uvm_report_message.md"
+ },
+ {
+  "text": "🗽 chapter 18: uvm_coreservice",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "section",
+   "factory",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 18: uvm_coreservice.md"
+ },
+ {
+  "text": "🗽 chapter 21: uvm_status_container",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 21: uvm_misc.md"
+ },
+ {
+  "text": "🗽 chapter 28: uvm_port_component_base",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 28: uvm_port_component_base.md"
+ },
+ {
+  "text": "🗽 chapter 29: uvm_port_base",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose",
+   "tlm"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 29: uvm_port_base.md"
+ },
+ {
+  "text": "🗽 chapter 35: uvm_task_phase",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 35: uvm_task_phase.md"
+ },
+ {
+  "text": "chapter 36: uvm_callback",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 36: uvm_callback.md"
+ },
+ {
+  "text": "🗽 chapter 37: uvm_callbacks_base",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 37: uvm_callbacks_base.md"
+ },
+ {
+  "text": "🗽 chapter 38: uvm_typed_callbacks",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 38: uvm_typed_callbacks.md"
+ },
+ {
+  "text": "🗽 chapter 39: uvm_callbacks",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 39: uvm_callbacks.md"
+ },
+ {
+  "text": "🗽 chapter 40: uvm_typeid_base",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 40: uvm_typeid_base.md"
+ },
+ {
+  "text": "🗽 chapter 48: uvm_derived_callbacks",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 48: uvm_derived_callbacks.md"
+ },
+ {
+  "text": "🗽 uvm_bottomup_phase",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 50: uvm_bottomup_phase.md"
+ },
+ {
+  "text": "🗽 chapter 51:uvm_objection",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 51: uvm_objection.md"
+ },
+ {
+  "text": "chapter 52: uvm_test_done_objection",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 52: uvm_test_done_objection.md"
+ },
+ {
+  "text": "🗽 chapter 55: uvm_transaction",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 55: uvm_transaction.md"
+ },
+ {
+  "text": "🗽 chapter 58: uvm_packer",
+  "topic": "03: uvm_base",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/03: uvm_base/chapter 58: uvm_packer.md"
+ },
+ {
+  "text": "readme",
+  "topic": "04: uvm_comps",
+  "tags": [
+   "comps",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/04: uvm_comps/readme.md"
+ },
+ {
+  "text": "chapter 01: uvm_sequence_base",
+  "topic": "05: uvm_seq",
+  "tags": [
+   "seq",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/05: uvm_seq/chapter 01: uvm_sequence_base.md"
+ },
+ {
+  "text": "chapter 02: uvm_sequence_item",
+  "topic": "05: uvm_seq",
+  "tags": [
+   "seq",
+   "prose",
+   "sequence"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/05: uvm_seq/chapter 02: uvm_sequence_item.md"
+ },
+ {
+  "text": "🗽 chapter 06: uvm_sequencer_param_base",
+  "topic": "05: uvm_seq",
+  "tags": [
+   "seq",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/05: uvm_seq/chapter 06: uvm_sequencer_param_base.md"
+ },
+ {
+  "text": "chapter 07: uvm_sequence",
+  "topic": "05: uvm_seq",
+  "tags": [
+   "seq",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/05: uvm_seq/chapter 07: uvm_sequence.md"
+ },
+ {
+  "text": "chapter 08: uvm_sequence_library",
+  "topic": "05: uvm_seq",
+  "tags": [
+   "seq",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/05: uvm_seq/chapter 08: uvm_sequence_library.md"
+ },
+ {
+  "text": "readme",
+  "topic": "05: uvm_seq",
+  "tags": [
+   "seq",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/05: uvm_seq/readme.md"
+ },
+ {
+  "text": "else",
+  "topic": "09: uvm_dpi",
+  "tags": [
+   "dpi",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/09: uvm_dpi/chapter 04: uvm_hdl_vcs.md"
+ },
+ {
+  "text": "else",
+  "topic": "09: uvm_dpi",
+  "tags": [
+   "dpi",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/09: uvm_dpi/chapter 04: uvm_hdl_vcs.md"
+ },
+ {
+  "text": "🗽 chapter 01: uvm_sqr_connections",
+  "topic": "10: uvm_tlm",
+  "tags": [
+   "tlm",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/10: uvm_tlm/chapter 01: uvm_sqr_connections.md"
+ },
+ {
+  "text": "chapter 06: uvm_exports",
+  "topic": "10: uvm_tlm",
+  "tags": [
+   "tlm",
+   "prose",
+   "tlm"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/10: uvm_tlm/chapter 06: uvm_exports.md"
+ },
+ {
+  "text": "🗽 chapter 07: uvm_imps",
+  "topic": "10: uvm_tlm",
+  "tags": [
+   "tlm",
+   "prose",
+   "tlm"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/10: uvm_tlm/chapter 07: uvm_imps.md"
+ },
+ {
+  "text": "🗽 chapter 08: uvm_analysis_port",
+  "topic": "10: uvm_tlm",
+  "tags": [
+   "tlm",
+   "prose",
+   "tlm"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/10: uvm_tlm/chapter 08: uvm_analysis_port.md"
+ },
+ {
+  "text": "🗽 chapter 10: uvm_tlm_analysis_fifo",
+  "topic": "10: uvm_tlm",
+  "tags": [
+   "tlm",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/10: uvm_tlm/chapter 10: uvm_tlm_fifos.md"
+ },
+ {
+  "text": "readme",
+  "topic": "10: uvm_tlm",
+  "tags": [
+   "tlm",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/10: uvm_tlm/readme.md"
+ },
+ {
+  "text": "🗽 chapter 03: uvm_reg",
+  "topic": "11: uvm_reg",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/11: uvm_reg/chapter 03: uvm_reg.md"
+ },
+ {
+  "text": "chapter 04: uvm_reg_item",
+  "topic": "11: uvm_reg",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/11: uvm_reg/chapter 04: uvm_reg_item.md"
+ },
+ {
+  "text": "🗽 chapter 05: uvm_reg_block",
+  "topic": "11: uvm_reg",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/11: uvm_reg/chapter 05: uvm_reg_block.md"
+ },
+ {
+  "text": "🗽 chapter 06: uvm_reg_file",
+  "topic": "11: uvm_reg",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/11: uvm_reg/chapter 06: uvm_reg_file.md"
+ },
+ {
+  "text": "🗽 chapter 07: uvm_mem",
+  "topic": "11: uvm_reg",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/11: uvm_reg/chapter 07: uvm_mem.md"
+ },
+ {
+  "text": "🗽 chapter 08: uvm_reg_map",
+  "topic": "11: uvm_reg",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/11: uvm_reg/chapter 08: uvm_reg_map.md"
+ },
+ {
+  "text": "🗽 chapter 10: uvm_reg_cbs",
+  "topic": "11: uvm_reg",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/11: uvm_reg/chapter 10: uvm_reg_cbs.md"
+ },
+ {
+  "text": "chapter 13: uvm_reg_sequence",
+  "topic": "11: uvm_reg",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/11: uvm_reg/chapter 13: uvm_reg_sequence.md"
+ },
+ {
+  "text": "uvm_reg_structure",
+  "topic": "11: uvm_reg",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/11: uvm_reg/readme.md"
+ },
+ {
+  "text": "uvm_reg_connection",
+  "topic": "11: uvm_reg",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/11: uvm_reg/readme.md"
+ },
+ {
+  "text": "readme",
+  "topic": "11: uvm_reg",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/11: uvm_reg/sequences/readme.md"
+ },
+ {
+  "text": "🗽 chapter 06: uvm_tlm_b_initiator_socket",
+  "topic": "12: uvm_tlm2",
+  "tags": [
+   "tlm",
+   "prose",
+   "tlm"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/12: uvm_tlm2/chapter 06: uvm_tlm2_sockets.md"
+ },
+ {
+  "text": "🗽 chapter 06: uvm_tlm_b_passthrough_target_socket",
+  "topic": "12: uvm_tlm2",
+  "tags": [
+   "tlm",
+   "prose",
+   "tlm"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/12: uvm_tlm2/chapter 06: uvm_tlm2_sockets.md"
+ },
+ {
+  "text": "🗽 chapter 06: uvm_tlm_nb_passthrough_initiator_socket",
+  "topic": "12: uvm_tlm2",
+  "tags": [
+   "tlm",
+   "prose",
+   "tlm"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/12: uvm_tlm2/chapter 06: uvm_tlm2_sockets.md"
+ },
+ {
+  "text": "2.UVM_PHASE type",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 02: phase and objection.md"
+ },
+ {
+  "text": "9.UVM_PHASE in sequence",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose",
+   "phase",
+   "objection",
+   "sequence"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 02: phase and objection.md"
+ },
+ {
+  "text": "🗽 note 03: uvm_sequence",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 03: uvm_sequence.md"
+ },
+ {
+  "text": "1. sequence 宏",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose",
+   "sequence"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 03: uvm_sequence.md"
+ },
+ {
+  "text": "2. sequence register",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose",
+   "sequence",
+   "sequencer"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 03: uvm_sequence.md"
+ },
+ {
+  "text": "🗽 04: uvm_field_automation",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 04: uvm_field_automation.md"
+ },
+ {
+  "text": "1. field_automation 原理",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 04: uvm_field_automation.md"
+ },
+ {
+  "text": "4.uvm 深拷贝 vs 浅拷贝",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 04: uvm_field_automation.md"
+ },
+ {
+  "text": "🗽 note 05: uvm_component",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 05: uvm_component.md"
+ },
+ {
+  "text": "2.uvm_component 的树形组织结构的使用",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose",
+   "factory",
+   "phase",
+   "test"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 05: uvm_component.md"
+ },
+ {
+  "text": "1.uvm_report overview",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose",
+   "override",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 06: uvm_report.md"
+ },
+ {
+  "text": "8.自定义输出格式",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 06: uvm_report.md"
+ },
+ {
+  "text": "🗽 note 07: uvm_factory",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 07: uvm_factory.md"
+ },
+ {
+  "text": "1. component 的注册",
+  "topic": "note",
+  "tags": [
+   "general",
+   "section",
+   "factory"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 07: uvm_factory.md"
+ },
+ {
+  "text": "2. component 的实例化",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose",
+   "factory",
+   "override"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 07: uvm_factory.md"
+ },
+ {
+  "text": "5. 函数比较",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose",
+   "override"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 07: uvm_factory.md"
+ },
+ {
+  "text": "Name Table / Type Table",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 08: uvm_database.md"
+ },
+ {
+  "text": "1.TLM 概念",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose",
+   "tlm"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 09: uvm_tlm.md"
+ },
+ {
+  "text": "general functions",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 10: uvm_register_model.md"
+ },
+ {
+  "text": "read",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose",
+   "sequence",
+   "sequencer",
+   "callback"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 10: uvm_register_model.md"
+ },
+ {
+  "text": "write",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose",
+   "sequence",
+   "sequencer",
+   "callback"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 10: uvm_register_model.md"
+ },
+ {
+  "text": "poke",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 10: uvm_register_model.md"
+ },
+ {
+  "text": "peek",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 10: uvm_register_model.md"
+ },
+ {
+  "text": "3.uvm 内置 callback",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose",
+   "phase",
+   "callback"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 11: uvm_callback.md"
+ },
+ {
+  "text": "1. uvm_tlm2",
+  "topic": "note",
+  "tags": [
+   "general",
+   "prose",
+   "tlm"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/note/note 12: uvm_tlm2.md"
+ },
+ {
+  "text": "UVM_PHASE",
+  "topic": "readme.md",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/readme.md"
+ },
+ {
+  "text": "UVM_SEQUENCE",
+  "topic": "readme.md",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/readme.md"
+ },
+ {
+  "text": "UVM_FIELD_AUTOMATION",
+  "topic": "readme.md",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/readme.md"
+ },
+ {
+  "text": "UVM_FACTORY",
+  "topic": "readme.md",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/readme.md"
+ },
+ {
+  "text": "UVM_REPORT",
+  "topic": "readme.md",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/readme.md"
+ },
+ {
+  "text": "UVM_CALLBACK",
+  "topic": "readme.md",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/readme.md"
+ },
+ {
+  "text": "UVM_DB",
+  "topic": "readme.md",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/readme.md"
+ },
+ {
+  "text": "UVM_REG",
+  "topic": "readme.md",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM1.2 source code analysis_副本/readme.md"
+ },
+ {
+  "text": "4.UVM_REGEX_NO_DPI",
+  "topic": "chapter 03: static_class.md",
+  "tags": [
+   "design_pattern",
+   "prose",
+   "config_db"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 03: static_class.md"
+ },
+ {
+  "text": "2.策略模式",
+  "topic": "chapter 04: template_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 04: template_pattern.md"
+ },
+ {
+  "text": "3.default_sequence",
+  "topic": "chapter 04: template_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose",
+   "phase",
+   "sequence",
+   "sequencer"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 04: template_pattern.md"
+ },
+ {
+  "text": "4.callback",
+  "topic": "chapter 04: template_pattern.md",
+  "tags": [
+   "design_pattern",
+   "section",
+   "driver",
+   "test",
+   "callback"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 04: template_pattern.md"
+ },
+ {
+  "text": "5.uvm_callback",
+  "topic": "chapter 04: template_pattern.md",
+  "tags": [
+   "design_pattern",
+   "section",
+   "phase",
+   "driver",
+   "callback"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 04: template_pattern.md"
+ },
+ {
+  "text": "6.扩展使用",
+  "topic": "chapter 04: template_pattern.md",
+  "tags": [
+   "design_pattern",
+   "section"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 04: template_pattern.md"
+ },
+ {
+  "text": "2.uvm_callback_iter",
+  "topic": "chapter 05: iterator_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose",
+   "driver",
+   "callback"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 05: iterator_pattern.md"
+ },
+ {
+  "text": "3.迭代器在scoreboard中的应用",
+  "topic": "chapter 05: iterator_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose",
+   "scoreboard"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 05: iterator_pattern.md"
+ },
+ {
+  "text": "1.访问者模式",
+  "topic": "chapter 06: visitor_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 06: visitor_pattern.md"
+ },
+ {
+  "text": "2.UVM_PHASE",
+  "topic": "chapter 06: visitor_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose",
+   "phase"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 06: visitor_pattern.md"
+ },
+ {
+  "text": "3.uvm objection",
+  "topic": "chapter 06: visitor_pattern.md",
+  "tags": [
+   "design_pattern",
+   "section",
+   "objection"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 06: visitor_pattern.md"
+ },
+ {
+  "text": "4.uvm_visitor",
+  "topic": "chapter 06: visitor_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 06: visitor_pattern.md"
+ },
+ {
+  "text": "1.启动与挂载",
+  "topic": "chapter 07: command_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose",
+   "sequence",
+   "sequencer",
+   "driver"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 07: command_pattern.md"
+ },
+ {
+  "text": "2.三种sequence的启动方式",
+  "topic": "chapter 07: command_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose",
+   "sequence",
+   "sequencer"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 07: command_pattern.md"
+ },
+ {
+  "text": "3.命令模式",
+  "topic": "chapter 07: command_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 07: command_pattern.md"
+ },
+ {
+  "text": "4.start_item & finish_item",
+  "topic": "chapter 07: command_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose",
+   "sequence",
+   "sequencer"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 07: command_pattern.md"
+ },
+ {
+  "text": "5.中介者模式",
+  "topic": "chapter 07: command_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose",
+   "sequence"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 07: command_pattern.md"
+ },
+ {
+  "text": "组成",
+  "topic": "chapter 08: adapter_pattern.md",
+  "tags": [
+   "dap",
+   "prose",
+   "sequence",
+   "sequencer",
+   "driver"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 08: adapter_pattern.md"
+ },
+ {
+  "text": "3.predictor",
+  "topic": "chapter 08: adapter_pattern.md",
+  "tags": [
+   "dap",
+   "prose",
+   "monitor",
+   "env",
+   "reg_model"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 08: adapter_pattern.md"
+ },
+ {
+  "text": "1.FSM modeling",
+  "topic": "chapter 09: state_machine_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 09: state_machine_pattern.md"
+ },
+ {
+  "text": "1.观察者模式",
+  "topic": "chapter 10: observer_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 10: observer_pattern.md"
+ },
+ {
+  "text": "2.uvm_subscriber",
+  "topic": "chapter 10: observer_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose",
+   "monitor",
+   "scoreboard",
+   "tlm"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 10: observer_pattern.md"
+ },
+ {
+  "text": "3.TLM",
+  "topic": "chapter 10: observer_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose",
+   "env"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 10: observer_pattern.md"
+ },
+ {
+  "text": "示例",
+  "topic": "chapter 10: observer_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 10: observer_pattern.md"
+ },
+ {
+  "text": "将端口加入树形结构",
+  "topic": "chapter 10: observer_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 10: observer_pattern.md"
+ },
+ {
+  "text": "connect函数",
+  "topic": "chapter 10: observer_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 10: observer_pattern.md"
+ },
+ {
+  "text": "write函数",
+  "topic": "chapter 10: observer_pattern.md",
+  "tags": [
+   "design_pattern",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 10: observer_pattern.md"
+ },
+ {
+  "text": "m_imp_list",
+  "topic": "chapter 10: observer_pattern.md",
+  "tags": [
+   "design_pattern",
+   "section",
+   "phase",
+   "driver",
+   "agent"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_design_pattern_副本/chapter 10: observer_pattern.md"
+ },
+ {
+  "text": "1. interface",
+  "topic": "UVM_TLM",
+  "tags": [
+   "tlm",
+   "prose",
+   "tlm"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_TLM/UVM中基于SOCKET通信的TLM2.0.md"
+ },
+ {
+  "text": "2. socket",
+  "topic": "UVM_TLM",
+  "tags": [
+   "tlm",
+   "prose",
+   "tlm"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_TLM/UVM中基于SOCKET通信的TLM2.0.md"
+ },
+ {
+  "text": "3. generic payload",
+  "topic": "UVM_TLM",
+  "tags": [
+   "tlm",
+   "prose",
+   "sequence",
+   "tlm"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_TLM/UVM中基于SOCKET通信的TLM2.0.md"
+ },
+ {
+  "text": "2. UVM Object Print",
+  "topic": "UVM_baseclasses",
+  "tags": [
+   "base",
+   "prose",
+   "callback"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_baseclasses/UVM object.md"
+ },
+ {
+  "text": "3. UVM Object Copy/Clone",
+  "topic": "UVM_baseclasses",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_baseclasses/UVM object.md"
+ },
+ {
+  "text": "4. UVM Object compare",
+  "topic": "UVM_baseclasses",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_baseclasses/UVM object.md"
+ },
+ {
+  "text": "6. uvm_object与uvm_component的比较",
+  "topic": "UVM_baseclasses",
+  "tags": [
+   "base",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_baseclasses/UVM object.md"
+ },
+ {
+  "text": "UVM_DUMP_CMDLINE_ARGS",
+  "topic": "UVM_commandline",
+  "tags": [
+   "general",
+   "prose",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_commandline/Commandline.md"
+ },
+ {
+  "text": "UVM_TESTNAME",
+  "topic": "UVM_commandline",
+  "tags": [
+   "general",
+   "prose",
+   "factory",
+   "phase",
+   "test"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_commandline/Commandline.md"
+ },
+ {
+  "text": "UVM_VERBOSITY",
+  "topic": "UVM_commandline",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_commandline/Commandline.md"
+ },
+ {
+  "text": "uvm_set_verbosity",
+  "topic": "UVM_commandline",
+  "tags": [
+   "general",
+   "prose",
+   "phase"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_commandline/Commandline.md"
+ },
+ {
+  "text": "UVM_PHASE_TRACE",
+  "topic": "UVM_commandline",
+  "tags": [
+   "general",
+   "prose",
+   "phase"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_commandline/Commandline.md"
+ },
+ {
+  "text": "UVM_OBJECTION_TRACE",
+  "topic": "UVM_commandline",
+  "tags": [
+   "general",
+   "prose",
+   "objection"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_commandline/Commandline.md"
+ },
+ {
+  "text": "UVM_RESOURCE_DB_TRACE",
+  "topic": "UVM_commandline",
+  "tags": [
+   "general",
+   "prose",
+   "resource"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_commandline/Commandline.md"
+ },
+ {
+  "text": "UVM_CONFIG_DB_TRACE",
+  "topic": "UVM_commandline",
+  "tags": [
+   "general",
+   "prose",
+   "config_db"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_commandline/Commandline.md"
+ },
+ {
+  "text": "uvm_agent.is_active和环境复用",
+  "topic": "UVM_component",
+  "tags": [
+   "comps",
+   "prose",
+   "sequence",
+   "sequencer",
+   "driver"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_component/is_active背后的验证重用.md"
+ },
+ {
+  "text": "基于多层UVC结构的monitor分类",
+  "topic": "UVM_component",
+  "tags": [
+   "comps",
+   "prose",
+   "sequence",
+   "sequencer",
+   "driver"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_component/is_active背后的验证重用.md"
+ },
+ {
+  "text": "验证复用的多样化",
+  "topic": "UVM_component",
+  "tags": [
+   "comps",
+   "prose",
+   "sequence"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_component/is_active背后的验证重用.md"
+ },
+ {
+  "text": "Verification Big Data(VBD)",
+  "topic": "UVM_recordingclass",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_recordingclass/UVM_Hybrid_Printer/readme.md"
+ },
+ {
+  "text": "1.从DMA验证说起",
+  "topic": "UVM_registermodel",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_registermodel/Memory Allocation Manager.md"
+ },
+ {
+  "text": "summary table",
+  "topic": "UVM_registermodel",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_registermodel/uvm_reg_field.md"
+ },
+ {
+  "text": "1.前门访问和后门访问",
+  "topic": "UVM_registermodel",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_registermodel/前门访问和后门访问.md"
+ },
+ {
+  "text": "4.总结",
+  "topic": "UVM_registermodel",
+  "tags": [
+   "reg",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_registermodel/前门访问和后门访问.md"
+ },
+ {
+  "text": "示例",
+  "topic": "UVM_reportingclass",
+  "tags": [
+   "report",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_reportingclass/UVM消息打印机制打印时间.md"
+ },
+ {
+  "text": "使用UVM-1.1进行仿真",
+  "topic": "UVM_reportingclass",
+  "tags": [
+   "report",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_reportingclass/UVM消息打印机制打印时间.md"
+ },
+ {
+  "text": "使用UVM-1.2进行仿真",
+  "topic": "UVM_reportingclass",
+  "tags": [
+   "report",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_reportingclass/UVM消息打印机制打印时间.md"
+ },
+ {
+  "text": "使用UVM-1.1进行仿真现象分析",
+  "topic": "UVM_reportingclass",
+  "tags": [
+   "report",
+   "section",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_reportingclass/UVM消息打印机制打印时间.md"
+ },
+ {
+  "text": "使用UVM-1.2进行仿真现象分析",
+  "topic": "UVM_reportingclass",
+  "tags": [
+   "report",
+   "prose",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_reportingclass/UVM消息打印机制打印时间.md"
+ },
+ {
+  "text": "UVM-1.1消息格式定制",
+  "topic": "UVM_reportingclass",
+  "tags": [
+   "report",
+   "prose",
+   "phase",
+   "test",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_reportingclass/UVM消息打印机制打印时间.md"
+ },
+ {
+  "text": "UVM-1.2消息格式定制",
+  "topic": "UVM_reportingclass",
+  "tags": [
+   "report",
+   "prose",
+   "phase",
+   "test",
+   "report"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_reportingclass/UVM消息打印机制打印时间.md"
+ },
+ {
+  "text": "1.Heartbeat作用",
+  "topic": "UVM_reportingclass",
+  "tags": [
+   "report",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_reportingclass/uvm_heartbeat.md"
+ },
+ {
+  "text": "2.Heartbeat内置函数",
+  "topic": "UVM_reportingclass",
+  "tags": [
+   "report",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_reportingclass/uvm_heartbeat.md"
+ },
+ {
+  "text": "1.uvm_verbosity",
+  "topic": "UVM_reportingclass",
+  "tags": [
+   "report",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_reportingclass/uvm_verbosity.md"
+ },
+ {
+  "text": "2.UVM中打印信息的控制",
+  "topic": "UVM_reportingclass",
+  "tags": [
+   "report",
+   "prose",
+   "phase"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_reportingclass/uvm_verbosity.md"
+ },
+ {
+  "text": "6.UVM打印信息管理",
+  "topic": "UVM_reportingclass",
+  "tags": [
+   "report",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_reportingclass/uvm_verbosity.md"
+ },
+ {
+  "text": "1.Arbitrary",
+  "topic": "UVM_sequenceclass",
+  "tags": [
+   "seq",
+   "prose",
+   "sequence",
+   "sequencer"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_sequenceclass/Sequence的仲裁和锁定.md"
+ },
+ {
+  "text": "2.Locking Mechanism",
+  "topic": "UVM_sequenceclass",
+  "tags": [
+   "seq",
+   "prose",
+   "sequence",
+   "sequencer",
+   "driver"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_sequenceclass/Sequence的仲裁和锁定.md"
+ },
+ {
+  "text": "3.Sequence Interrupt",
+  "topic": "UVM_sequenceclass",
+  "tags": [
+   "seq",
+   "prose",
+   "sequence",
+   "sequencer",
+   "driver"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_sequenceclass/Sequence的仲裁和锁定.md"
+ },
+ {
+  "text": "1.m_sequencer和p_sequencer",
+  "topic": "UVM_sequencer",
+  "tags": [
+   "seq",
+   "prose",
+   "sequence",
+   "sequencer"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_sequencer/m_sequencer和p_sequencer.md"
+ },
+ {
+  "text": "2.p_sequencer和m_sequencer之间的访问关系示例",
+  "topic": "UVM_sequencer",
+  "tags": [
+   "seq",
+   "prose",
+   "sequence",
+   "sequencer"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_sequencer/m_sequencer和p_sequencer.md"
+ },
+ {
+  "text": "uvm_event",
+  "topic": "UVM_synchronizationclass",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_synchronizationclass/uvm_event.md"
+ },
+ {
+  "text": "3.release",
+  "topic": "UVM_tb",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_tb/SV及UVM中force和deposit的用法及区别.md"
+ },
+ {
+  "text": "***+UVM_DUMP_CMDLINE_ARGS***",
+  "topic": "UVM_tb",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_tb/UVM调试.md"
+ },
+ {
+  "text": "***+UVM_CONFIG_DB_TRACE***",
+  "topic": "UVM_tb",
+  "tags": [
+   "general",
+   "prose",
+   "config_db"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_tb/UVM调试.md"
+ },
+ {
+  "text": "***+UVM_PHASE_TRACE***",
+  "topic": "UVM_tb",
+  "tags": [
+   "general",
+   "prose",
+   "phase"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_tb/UVM调试.md"
+ },
+ {
+  "text": "***+UVM_OBJECTION_TRACE***",
+  "topic": "UVM_tb",
+  "tags": [
+   "general",
+   "prose",
+   "objection"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_tb/UVM调试.md"
+ },
+ {
+  "text": "***+UVM_VERBOSITY***",
+  "topic": "UVM_tb",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_tb/UVM调试.md"
+ },
+ {
+  "text": "***uvm_root::print_topology()***",
+  "topic": "UVM_tb",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_tb/UVM调试.md"
+ },
+ {
+  "text": "***uvm_component::print_config()***",
+  "topic": "UVM_tb",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_tb/UVM调试.md"
+ },
+ {
+  "text": "***uvm_component::print_override_info()***",
+  "topic": "UVM_tb",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_tb/UVM调试.md"
+ },
+ {
+  "text": "***uvm_factory::print()***",
+  "topic": "UVM_tb",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_tb/UVM调试.md"
+ },
+ {
+  "text": "***uvm_factory::debug_create_by_name()***",
+  "topic": "UVM_tb",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_tb/UVM调试.md"
+ },
+ {
+  "text": "***uvm_port_base::debug_provided_to()***",
+  "topic": "UVM_tb",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_tb/UVM调试.md"
+ },
+ {
+  "text": "1.前门读写",
+  "topic": "UVM_tb",
+  "tags": [
+   "general",
+   "prose"
+  ],
+  "source": "/tools/Synopsys/temp/uvm-source-code-1.2-knowledge-mcp/private/notes/UVM_副本/UVM_tb/验证环境获取DUT内部信号的方法.md"
+ }
+]

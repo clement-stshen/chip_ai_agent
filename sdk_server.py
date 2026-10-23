@@ -226,9 +226,16 @@ def _make_lifespan(warm: bool):
 
     @asynccontextmanager
     async def lifespan(srv):
+
         if warm:
             await anyio.to_thread.run_sync(get_agent)
             await anyio.to_thread.run_sync(_boot_audit)
+            # Warm heavy RAG indexes in background for faster first query
+            try:
+                from .scheduler import preload_indexes
+                preload_indexes(background=True)
+            except Exception:
+                pass  # scheduling optimization is best-effort
         yield {}
     return lifespan
 

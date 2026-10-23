@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "scan_root": "/tools/lsf_api",
+  "scanned": 137,
+  "accepted_manuals": 133,
+  "rejected_candidates": 4,
+  "failed": 0,
+  "structured_units": 427084,
+  "units_by_kind": {
+    "chapter": 1836,
+    "section": 49195,
+    "steps": 79,
+    "flow": 6986,
+    "example": 4010,
+    "prose": 181087
+  },
+  "manuals_by_product": {
+    "general": 1,
+    "uvm_official": 6,
+    "vcs": 76,
+    "verdi": 50
+  },
+  "model_sft_records": 243193,
+  "segmentation": "chapter/section + operating steps + flow + example",
+  "artifacts": {
+    "inventory:inventory.json": {
+      "bytes": 2372,
+      "sha256": "f7e84a344849c399bd4d96555341eb92df28dc5f31f5cae677072ba23fa77a3f"
+    }
+  },
+  "merged_from": "/tools/lsf_api/chip_ai_agent/corpus/technical_manuals_synopsys_temp",
+  "merged_at_unix": 1792462353.83967,
+  "default_units_before_merge": 243193,
+  "merged_units": 183891,
+  "dropped_fragments": 24582,
+  "dropped_duplicates": 46214,
+  "index": {
+    "format": "sharded-postings-v1",
+    "shards": 7,
+    "max_shard_bytes": 47928660,
+    "index_dir": "/tools/lsf_api/chip_ai_agent/corpus/technical_manuals/manual_index_shards",
+    "lazy_units": true
+  },
+  "data_shards": {
+    "units": {
+      "migrated": true,
+      "shards": 8,
+      "max_bytes": 47185752,
+      "total_bytes": 340415386,
+      "records": 427084
+    },
+    "sft": {
+      "migrated": true,
+      "shards": 6,
+      "max_bytes": 47185895,
+      "total_bytes": 281194820,
+      "records": 427084
+    }
+  }
+}

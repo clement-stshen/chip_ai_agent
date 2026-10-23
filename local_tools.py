@@ -137,20 +137,28 @@ def analyze_eda_log(args: dict) -> dict:
                 break
     if not path:
         return {"ok": False, "error": "no log path given and no default log found"}
+    log_text = ""
+    try:
+        log_text = Path(path).read_text(errors="ignore")
+    except OSError:
+        pass
     res = analyze_log(path, kind=args.get("kind"))
     # Failed runs: attach step-level UG manual guidance when the vector
-    # index is available. Degrade gracefully when it is not built.
+    # corpora are available (unified RAG fan-out: UG steps + merged manual
+    # corpus in parallel). Degrade gracefully when none is built.
     if res.get("ok") and res.get("verdict") != "PASS" and res.get("failure_class"):
         try:
-            from . import ug_index
-            if ug_index._load(ug_index._ug_root()) is not None:
-                queries = ug_step_queries(res.get("kind"), res.get("failure_class"))
-                manual = []
-                for q in queries:
-                    sr = ug_index.search(q, kind="steps", top_k=3)
-                    manual.append({"query": q, "hits": sr.get("hits", [])})
-                if manual:
-                    res["manual_steps"] = manual
+            from . import rag_router
+            queries = ug_step_queries(res.get("kind"), res.get("failure_class"))
+            manual = []
+            for q in queries:
+                sr = rag_router.search(q, sources=["ug", "manual"],
+                                       kind="steps", top_k=3, timeout=5.0)
+                hits = [h for r in sr.get("results", []) for h in r.get("hits", [])]
+                if hits:
+                    manual.append({"query": q, "hits": hits})
+            if manual:
+                res["manual_steps"] = manual
         except Exception as exc:  # noqa: BLE001 — guidance must never break analysis
             res.setdefault("notes", []).append(f"manual step lookup skipped: {exc}")
         # Cross-domain closed loop: recommend DVCon 2025/2026 paper methods
@@ -193,6 +201,26 @@ def analyze_eda_log(args: dict) -> dict:
                             f"dvcon memory persist skipped: {exc}")
         except Exception as exc:  # noqa: BLE001
             res.setdefault("notes", []).append(f"dvcon method lookup skipped: {exc}")
+        # PCIe-domain guidance: when the failing log is PCIe-related, attach
+        # chapter/step-level manual guidance from the in-repo PCIe OVM guide.
+        _PCIE_HINTS = ("pcie", "ovm", "svt_pcie", "ltssm", "dllp", "tlp",
+                       "link train", "root complex", "endpoint")
+        low = log_text.lower()
+        if any(h in low for h in _PCIE_HINTS):
+            try:
+                from . import pcie_index
+                if pcie_index._load() is not None:
+                    steps = []
+                    for q in ug_step_queries(res.get("kind"),
+                                             res.get("failure_class")):
+                        sr = pcie_index.search(q, top_k=3, kind="steps")
+                        if sr.get("hits"):
+                            steps.append({"query": q, "hits": sr["hits"]})
+                    if steps:
+                        res["pcie_manual_steps"] = steps
+            except Exception as exc:  # noqa: BLE001
+                res.setdefault("notes", []).append(
+                    f"pcie manual lookup skipped: {exc}")
     return res
 
 
@@ -290,6 +318,205 @@ def flow_guide(args: dict) -> dict:
                      "(overview|phase|route|capabilities|post_rtl_checklist)"}
 
 
+def pcie_search(args: dict) -> dict:
+    """PCIe OVM User Guide retrieval (chapter/steps/code/prose chunks)."""
+    from . import pcie_index
+    return pcie_index.search(
+        args.get("query", ""),
+        top_k=max(1, min(20, int(args.get("top_k") or 5))),
+        kind=args.get("kind"),
+    )
+
+
+def manual_search(args: dict) -> dict:
+    """Technical-manual corpus retrieval (chapter/section/steps/flow/example/prose)."""
+    from . import manual_ingest
+    return manual_ingest.search(
+        args.get("query", ""),
+        product=args.get("product"),
+        doc=args.get("doc"),
+        kind=args.get("kind"),
+        top_k=max(1, min(20, int(args.get("top_k") or 5))),
+    )
+
+
+def manual_ingest_op(args: dict) -> dict:
+    """Build/status for the technical-manual corpus pipeline."""
+    from . import manual_ingest
+    root = args.get("root")
+    out = args.get("out")
+    op = args.get("op", "status")
+    if op == "build":
+        return manual_ingest.build(root, out)
+    if op == "scan":
+        return manual_ingest.scan(root)
+    if op == "sft":
+        return manual_ingest.generate_sft(out)
+    return manual_ingest.status(out)
+
+
+def rag_search(args: dict) -> dict:
+    """Unified cross-corpus RAG retrieval (parallel fan-out)."""
+    from . import rag_router
+    sources = args.get("sources")
+    return rag_router.search(
+        args.get("query", ""),
+        sources=sources if isinstance(sources, list) else None,
+        top_k=max(1, min(10, int(args.get("top_k") or 4))),
+        timeout=max(1.0, min(30.0, float(args.get("timeout") or 5.0))),
+        product=args.get("product"),
+        kind=args.get("kind"),
+        category=args.get("category"),
+    )
+
+def uvm_methodology_op(args: dict) -> dict:
+    """UVM 1.2 methodology decision layer (patterns / phase map / checklist)."""
+    from . import uvm_methodology as um
+    op = args.get("op", "decide")
+    if op == "decide":
+        return um.decide(args.get("query", ""))
+    if op == "pattern":
+        return um.get_pattern(args.get("pattern", ""))
+    if op == "phase_map":
+        return um.get_phase_map()
+    if op == "checklist":
+        return um.get_checklist(args.get("level", "block_level"))
+    if op == "pitfalls":
+        return {"pitfalls": um.get_all_pitfalls()}
+    if op == "patterns":
+        return {"available": um.list_patterns()}
+    if op == "full":
+        q = args.get("query", "")
+        return um.methodology_checklist_for_intent(q)
+    return {"error": f"unknown op: {op} (decide|pattern|phase_map|checklist|pitfalls|patterns|full)"}
+
+
+def rag_search_op(args: dict) -> dict:
+    """Unified RAG search: routes to the right index backends and fuses results."""
+    from . import rag_router
+    return rag_router.rag_search(
+        args.get("query", ""),
+        top_k=max(1, min(20, int(args.get("top_k") or 5))),
+        backends=args.get("backends"),
+        kind=args.get("kind"),
+        product=args.get("product"),
+    )
+
+
+def rag_status_op(args: dict) -> dict:
+    """Health check for all RAG backends."""
+    from . import rag_router
+    return rag_router.status()
+
+
+
+def scheduler_status_op(args: dict) -> dict:
+    """Scheduler health: cache stats, circuit breaker state, warm threads."""
+    from . import scheduler
+    return scheduler.scheduler_status()
+
+
+def scheduler_preload_op(args: dict) -> dict:
+    """Preload heavy indexes into memory for faster first query."""
+    from . import scheduler
+    return scheduler.preload_indexes(background=args.get("background", True))
+
+
+def scheduler_cache_clear_op(args: dict) -> dict:
+    """Clear the scheduler result cache."""
+    from . import scheduler
+    n = scheduler.cache_clear()
+    return {"cleared": n}
+
+
+
+def post_rtl_methodology_op(args: dict) -> dict:
+    """Post-RTL verification methodology decision layer (7-stage sign-off)."""
+    from . import post_rtl_methodology as prm
+    op = args.get("op", "decide")
+    if op == "decide":
+        return prm.decide(args.get("query", ""))
+    if op == "stage":
+        return prm.get_stage(args.get("stage", ""))
+    if op == "workflow":
+        return prm.get_full_workflow()
+    if op == "convergence":
+        return prm.convergence_status(args.get("measurements", {}))
+    if op == "pitfalls":
+        return {"pitfalls": prm.get_pitfalls(args.get("stage"))}
+    if op == "stages":
+        return {"available": prm.list_stages()}
+    if op == "tool_chain":
+        return {"tools": prm.get_tool_chain(args.get("stage", ""))}
+    if op == "full":
+        return prm.post_rtl_checklist_for_intent(args.get("query", ""))
+    return {"error": f"unknown op: {op}"}
+
+
+
+def eda_route_op(args: dict) -> dict:
+    """EDA tool routing: intent → tool → command template validation."""
+    from . import eda_tool_router as etr
+    op = args.get("op", "match")
+    if op == "match":
+        return etr.match_tool_route(args.get("query", ""))
+    if op == "validate":
+        return etr.validate_command(args.get("tool", ""), args.get("command", []))
+    if op == "availability":
+        return etr.check_availability(args.get("tool", ""))
+    if op == "routes":
+        return {"routes": etr.get_all_routes()}
+    if op == "pitfalls":
+        return {"pitfalls": etr.get_pitfalls(args.get("tool"))}
+    return {"error": f"unknown op: {op}"}
+
+
+
+def dv_tb_generate_op(args: dict) -> dict:
+    """Intelligent UVM TB generation from methodology patterns."""
+    from . import dv_infrastructure as dvi
+    return dvi.generate_uvm_tb(
+        name=args.get("name", "fifo"),
+        interface_type=args.get("interface_type", "generic"),
+        data_width=args.get("data_width", 8),
+        components=args.get("components"),
+        output_dir=args.get("output_dir"),
+    )
+
+
+def dv_test_plan_op(args: dict) -> dict:
+    """Create dependency-aware test plan with seeds."""
+    from . import dv_infrastructure as dvi
+    return dvi.create_test_plan(
+        tests=args.get("tests", []),
+        simulator=args.get("simulator", "vcs"),
+        seeds=args.get("seeds"),
+        max_parallel=args.get("max_parallel", 4),
+    )
+
+
+def dv_coverage_op(args: dict) -> dict:
+    """Parse coverage log + create closure plan."""
+    from . import dv_infrastructure as dvi
+    cov = dvi.parse_coverage_log(args.get("log_content", ""))
+    if args.get("target_pct"):
+        plan = dvi.create_coverage_plan(cov, args["target_pct"])
+        cov["closure_plan"] = plan
+    return cov
+
+
+def dv_sim_config_op(args: dict) -> dict:
+    """Get optimized simulator configuration (DPO/ICO/RDA)."""
+    from . import dv_infrastructure as dvi
+    if args.get("op") == "compare":
+        return {"configs": dvi.compare_sim_configs()}
+    return dvi.get_sim_config(
+        args.get("config_name", "baseline"),
+        extra_compile=args.get("extra_compile"),
+        extra_sim=args.get("extra_sim"),
+    )
+
+
 LOCAL_TOOLS = {
     "generate_testbench": generate_testbench,
     "check_uvm_compliance": check_uvm_compliance,
@@ -297,6 +524,22 @@ LOCAL_TOOLS = {
     "run_simulation": run_sim,
     "open_waveform": open_waveform,
     "analyze_eda_log": analyze_eda_log,
+    "pcie_search": pcie_search,
+    "manual_search": manual_search,
+    "manual_ingest_op": manual_ingest_op,
+    "rag_search": rag_search,
+    "uvm_methodology_op": uvm_methodology_op,
+    "rag_search_op": rag_search_op,
+    "rag_status_op": rag_status_op,
+    "scheduler_status_op": scheduler_status_op,
+    "scheduler_preload_op": scheduler_preload_op,
+    "scheduler_cache_clear_op": scheduler_cache_clear_op,
+    "post_rtl_methodology_op": post_rtl_methodology_op,
+    "eda_route_op": eda_route_op,
+    "dv_tb_generate_op": dv_tb_generate_op,
+    "dv_test_plan_op": dv_test_plan_op,
+    "dv_coverage_op": dv_coverage_op,
+    "dv_sim_config_op": dv_sim_config_op,
     "design_state_pipeline": design_state_op,
     "search_domain_memory": search_domain_memory,
     "memory_distill": memory_distill,
@@ -327,6 +570,10 @@ LOCAL_TOOLS = {
     "read_specific_lines": read_specific_lines,
     "search_in_source_code_result": search_in_source_code_result,
 }
+
+
+
+
 
 
 def call_local(skill: str, args: dict) -> dict:

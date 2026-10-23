@@ -26,7 +26,7 @@ legacy 回退),支持 Claude Code / Codex / 任意 MCP 客户端。
       配置: site_paths (全部 env 可覆盖)
 ```
 
-## 3. MCP 工具面(24 个)
+## 3. MCP 工具面(35 个)
 
 ### 3.1 规划与执行
 | 工具 | 功能 |
@@ -58,6 +58,8 @@ legacy 回退),支持 Claude Code / Codex / 任意 MCP 客户端。
 |---|---|
 | `chip_ug_search` | VCS+Verdi+UVM 手册检索(章节/操作步骤切分, product/kind 过滤) |
 | `chip_dvcon_search` | DVCon 2025/2026 论文语料(段落/方法/结论切分, year/kind/tag 过滤) |
+| `chip_uvm_search` / `chip_uvm_class` / `chip_uvm_hierarchy` / `chip_uvm_methods` / `chip_uvm_method_source` / `chip_uvm_classes` / `chip_uvm_file` / `chip_uvm_files` / `chip_uvm_macro` | **UVM 1.2 源码级知识** (221 类/2190 方法/458 宏/145 文件 vendored 索引): 正则检索/类源码/继承树/方法签名/方法实现/类浏览/文件阅读/文件树/宏定义 |
+| `chip_uvm_semantic` / `chip_uvm_explain` | UVM 语义检索与概念深度解析: 2755 张蒸馏概念卡 + 源码文档双路 (哈希 TF-IDF, 零重依赖) |
 | `chip_npi` | NPI C API 检索(24 头文件/506 API) |
 | `chip_examples` | 黄金 UVM TB 范例库检索 |
 | `chip_domain_flows` / `chip_flow_guide` | 15 域机器可读流程 / 四相研发流程 |
@@ -114,12 +116,26 @@ pynpi-backed 本地实现(真实 Verdi 激活,否则统一降级契约):
 |---|---|
 | 启动+initialize (SDK) | ~0.5s/会话(导入栈,每会话一次) |
 | tools/list | 2ms |
-| plan 冷/热 | 40ms / 4ms(160 技能注册表单例缓存) |
+| plan 冷/热 | 40ms / 4ms(161 技能注册表单例缓存) |
 | SDK 工具缓存 | sdk_server 内 TTL 缓存(metrics 计数) |
 | 语料检索 | 哈希 TF-IDF 稀疏向量,毫秒级(UG 129 本/35,042 单元) |
 
 ## 10. 测试保障
 
-219 项回归(协议双模式、学习闭环、语料精准性、NPI 降级、UVM 解析、
+220 项回归(协议双模式、学习闭环、语料精准性、NPI 降级、UVM 解析、
 安全加固 shell-free、路径配置、并发), 离线 scratch venv (wheelhouse
 --no-index 47 wheels) 实测全绿。
+
+## 11. UVM 方法学决策层 (2026-10-19 审计增补)
+
+uvm_src_kb/concept_cards.json 新增 12 张方法学决策卡, 把
+"test plan → TB 架构 → sequence 分层 → objection 纪律 → config_db 纪律 →
+覆盖率闭环 → 回归种子 → 因果调试 → SVA 分工 → reset/X → signoff 门 →
+论文转化" 的工程实操规则结构化入语料, 经 TF-IDF 索引参与语义检索,
+由 chip_uvm_explain / chip_uvm_semantic 自动召回。
+
+## 12. 可移植性 (2026-10-19 审计结论)
+
+- 代码零站点特定绝对路径: site_paths.py 全部经 CHIP_AGENT_* env 覆盖;
+  manual_ingest 默认扫描根改为部署包父目录 (相对解析)。
+- bundle_offline.sh 不再携带字面 vendor 路径, 站点数据从 env/site_paths 读取。

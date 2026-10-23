@@ -1,4 +1,25 @@
-"""Tool registry — single source of truth for the MCP tool surface.
+"""Tool    ToolDef(
+        name="chip_dv_infrastructure",
+        description="DV 验证基础设施: op=generate_tb(UVM TB 自动生成)/test_plan(测试调度)/coverage(覆盖率收集分析)/sim_config(仿真器配置优化 DPO/ICO/RDA)",
+        schema={"type": "object",
+                "properties": {"op": {"type": "string",
+                                      "enum": ["generate_tb", "test_plan",
+                                               "coverage", "sim_config", "compare"]},
+                               "name": {"type": "string"},
+                               "interface_type": {"type": "string",
+                                                   "enum": ["apb", "axi4", "fifo", "generic"]},
+                               "data_width": {"type": "integer"},
+                               "tests": {"type": "array"},
+                               "seeds": {"type": "array"},
+                               "log_content": {"type": "string"},
+                               "target_pct": {"type": "number"},
+                               "config_name": {"type": "string"},
+                               "max_parallel": {"type": "integer"}},
+                "required": ["op"]},
+        handler=_dv_infra_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+ registry — single source of truth for the MCP tool surface.
 
 Split out of mcp_tools.py (Step 6): every ToolDef, handler and the
 _TOOL_DOMAINS client-filter map live here; mcp_tools keeps the server
@@ -165,6 +186,30 @@ def _recall_handler(args: dict) -> dict:
                 for sk, hits in list(matrix.items())[:10]}
         except Exception as e:
             out["db_error"] = str(e)
+    # UVM 1.2 methodology decision injection: when the intent mentions UVM
+    # patterns, inject the matching methodology so the caller gets actionable
+    # "how to build" guidance alongside the existing experience/memory data.
+    lo = intent.lower()
+    if any(w in lo for w in ("driver", "monitor", "agent", "scoreboard",
+                             "sequence", "env", "uvm", "factory override",
+                             "objection", "tlm", "register model", "phase")):
+        try:
+            from . import uvm_methodology as um
+            full = um.methodology_checklist_for_intent(intent)
+            if full.get("matched"):
+                out["uvm_methodology"] = {
+                    "best_pattern": full["best_pattern"],
+                    "rationale": full["best_rationale"],
+                    "phase_rules": {
+                        k: v["actions"] for k, v in
+                        full.get("pattern_data", {}).get("phases", {}).items()
+                    } if isinstance(full.get("pattern_data", {}).get("phases"), dict) else {},
+                    "pitfalls": full.get("pattern_data", {}).get("pitfalls", []),
+                    "checklist_level": full.get("checklist_level"),
+                    "checklist": full.get("checklist", []),
+                }
+        except Exception:
+            pass  # methodology is a bonus, never block the recall
     return out
 
 
@@ -212,6 +257,169 @@ def _npi_handler(args: dict) -> dict:
     )
 
 
+def _uvm_src_handler(fn: str, args: dict) -> dict:
+    """Shared dispatcher for the chip_uvm_* source-knowledge tools."""
+    from . import uvm_src_tools as u
+    try:
+        if fn == "search":
+            text = u.search_source(
+                args["pattern"],
+                file_filter=args.get("file_filter", ""),
+                case_sensitive=bool(args.get("case_sensitive", False)),
+                context_lines=max(0, min(10, int(args.get("context_lines") or 3))),
+                max_results=max(1, min(100, int(args.get("max_results") or 30))))
+        elif fn == "class":
+            text = u.get_class_definition(args["class_name"])
+        elif fn == "hierarchy":
+            text = u.get_class_hierarchy(
+                args["class_name"], args.get("direction", "both"))
+        elif fn == "methods":
+            text = u.list_methods(args["class_name"])
+        elif fn == "method_source":
+            text = u.get_method_source(args["class_name"], args["method_name"])
+        elif fn == "classes":
+            text = u.list_all_classes(args.get("filter", ""))
+        elif fn == "file":
+            text = u.get_file_content(
+                args["relative_path"],
+                start_line=max(1, int(args.get("start_line") or 1)),
+                end_line=max(0, int(args.get("end_line") or 0)))
+        elif fn == "files":
+            text = u.list_files(args.get("directory_filter", ""))
+        elif fn == "macro":
+            text = u.get_macro_definition(args["macro_name"])
+        elif fn == "semantic":
+            text = u.semantic_search(
+                args["query"],
+                top_k=max(1, min(12, int(args.get("top_k") or 6))),
+                source_only=bool(args.get("source_only", False)))
+        elif fn == "explain":
+            text = u.explain_uvm_concept(args["concept"])
+        else:
+            return {"error": f"unknown uvm tool: {fn}"}
+        return {"ok": True, "text": text[:16000]}
+    except Exception as e:
+        return {"error": f"{type(e).__name__}: {e}"}
+
+
+def _uvm_search_handler(args: dict) -> dict:
+    return _uvm_src_handler("search", args)
+
+
+def _uvm_class_handler(args: dict) -> dict:
+    return _uvm_src_handler("class", args)
+
+
+def _uvm_hierarchy_handler(args: dict) -> dict:
+    return _uvm_src_handler("hierarchy", args)
+
+
+def _uvm_methods_handler(args: dict) -> dict:
+    return _uvm_src_handler("methods", args)
+
+
+def _uvm_method_source_handler(args: dict) -> dict:
+    return _uvm_src_handler("method_source", args)
+
+
+def _uvm_classes_handler(args: dict) -> dict:
+    return _uvm_src_handler("classes", args)
+
+
+def _uvm_file_handler(args: dict) -> dict:
+    return _uvm_src_handler("file", args)
+
+
+def _uvm_files_handler(args: dict) -> dict:
+    return _uvm_src_handler("files", args)
+
+
+def _uvm_macro_handler(args: dict) -> dict:
+    return _uvm_src_handler("macro", args)
+
+
+def _uvm_semantic_handler(args: dict) -> dict:
+    return _uvm_src_handler("semantic", args)
+
+
+def _uvm_explain_handler(args: dict) -> dict:
+    return _uvm_src_handler("explain", args)
+
+
+def _uvm_notes_handler(args: dict) -> dict:
+    """chip_uvm_notes: UVM 1.2 source code analysis notes search."""
+    from . import uvm_src_tools
+    return uvm_src_tools.search_notes(
+        args["query"],
+        top_k=max(1, min(20, int(args.get("top_k") or 5))),
+        subsystem=args.get("subsystem"),
+        kind=args.get("kind"),
+    )
+
+
+
+
+def _uvm_methodology_handler(args: dict) -> dict:
+    """chip_uvm_methodology: UVM 1.2 methodology decision layer."""
+    from .local_tools import call_local
+    return call_local("uvm_methodology_op", args)
+
+
+
+
+def _rag_search_handler(args: dict) -> dict:
+    """chip_rag_search: unified RAG search across all index backends."""
+    from .local_tools import call_local
+    return call_local("rag_search_op", args)
+
+
+def _rag_status_handler(args: dict) -> dict:
+    """chip_rag_status: health check for all RAG backends."""
+    from .local_tools import call_local
+    return call_local("rag_status_op", args)
+
+
+
+
+def _scheduler_status_handler(args: dict) -> dict:
+    from .local_tools import call_local
+    return call_local("scheduler_status_op", args)
+
+def _scheduler_preload_handler(args: dict) -> dict:
+    from .local_tools import call_local
+    return call_local("scheduler_preload_op", args)
+
+def _scheduler_cache_clear_handler(args: dict) -> dict:
+    from .local_tools import call_local
+    return call_local("scheduler_cache_clear_op", args)
+
+
+
+
+def _post_rtl_methodology_handler(args: dict) -> dict:
+    from .local_tools import call_local
+    return call_local("post_rtl_methodology_op", args)
+
+
+
+
+def _eda_route_handler(args: dict) -> dict:
+    from .local_tools import call_local
+    return call_local("eda_route_op", args)
+
+
+
+
+def _dv_infra_handler(args: dict) -> dict:
+    from .local_tools import call_local
+    op_map = {"generate_tb": "dv_tb_generate_op", "test_plan": "dv_test_plan_op",
+              "coverage": "dv_coverage_op", "sim_config": "dv_sim_config_op"}
+    tool = op_map.get(args.get("op", ""), "dv_tb_generate_op")
+    return call_local(tool, args)
+
+
+
+
 def _examples_handler(args: dict) -> dict:
     """chip_examples: golden UVM TB example browsing (stdlib only)."""
     from . import examples_index
@@ -244,6 +452,7 @@ def _domain_flows_handler(args: dict):
     if d:
         f = get_flow(d)          # raises ValueError for unknown domains
         return {"ok": True, "domain": d, "stages": f.stages,
+                "segments": f.segments,
                 "loop_backs": [lb.__dict__ for lb in f.loop_backs],
                 "escalations": [e.__dict__ for e in f.escalations],
                 "signoff_gates": f.signoff_gates,
@@ -310,6 +519,52 @@ def _design_pipeline_handler(args: dict) -> dict:
     return {"ok": False, "error": f"unknown op: {op}"}
 
 
+
+def _enhanced_plan_handler(args: dict) -> dict:
+    """chip_agent_plan: route intent to best recipe + skill chain,
+    enriched with UVM methodology and RAG context when applicable."""
+    result = get_agent().plan(args["intent"])
+    intent = args["intent"]
+    lo = intent.lower()
+    # Inject UVM methodology guidance
+    if any(w in lo for w in ("driver", "monitor", "agent", "scoreboard",
+                             "sequence", "env", "uvm", "testbench",
+                             "factory", "objection", "tlm", "register")):
+        try:
+            from . import uvm_methodology as um
+            m = um.methodology_checklist_for_intent(intent)
+            if m.get("matched"):
+                result["uvm_methodology"] = {
+                    "best_pattern": m["best_pattern"],
+                    "rationale": m.get("best_rationale", ""),
+                    "checklist_level": m.get("checklist_level"),
+                    "checklist": m.get("checklist", []),
+                    "next_tools": m.get("pattern_data", {}).get("next_tools", []),
+                }
+        except Exception:
+            pass
+    # Inject RAG context for domain-specific queries
+    if any(w in lo for w in ("compile", "simulation", "coverage", "debug",
+                             "vcs", "verdi", "manual", "flow", "example")):
+        try:
+            from . import rag_router
+            rag = rag_router.rag_search(intent, top_k=3)
+            if rag.get("hits"):
+                result["rag_context"] = {
+                    "backends_used": rag.get("backends_used"),
+                    "top_hits": [
+                        {"source": h["source"], "kind": h["kind"],
+                         "product": h["product"], "doc": h["doc"],
+                         "score": h["score"], "text": h["text"][:500]}
+                        for h in rag.get("hits", [])[:3]
+                    ],
+                    "recommendations": rag.get("recommendations", []),
+                }
+        except Exception:
+            pass
+    return result
+
+
 TOOL_DEFS: list[ToolDef] = [
     ToolDef(
         name="chip_agent_plan",
@@ -317,7 +572,7 @@ TOOL_DEFS: list[ToolDef] = [
         schema={"type": "object",
                 "properties": {"intent": {"type": "string"}},
                 "required": ["intent"]},
-        handler=lambda a: get_agent().plan(a["intent"]),
+        handler=_enhanced_plan_handler,
         annotations=_AN_RO, timeout=30.0,
     ),
     ToolDef(
@@ -543,6 +798,26 @@ TOOL_DEFS: list[ToolDef] = [
         is_error=lambda r: "error" in r, annotations=_AN_RO,
     ),
     ToolDef(
+        name="chip_rag_search",
+        description="跨语料联邦 RAG 检索: 并行 fan-out 至 UG 手册/技术手册合并语料/DVCon 论文/金例子库, 单次查询返回统一溯源 schema (corpus/score/doc/kind/text), 单源故障或超时自动降级不影响其余源",
+        schema={"type": "object",
+                "properties": {"query": {"type": "string"},
+                               "sources": {"type": "array",
+                                           "items": {"type": "string",
+                                                     "enum": ["ug", "manual",
+                                                              "dvcon",
+                                                              "examples"]},
+                                           "description": "默认全部四个语料源"},
+                               "top_k": {"type": "integer"},
+                               "timeout": {"type": "number"},
+                               "product": {"type": "string"},
+                               "kind": {"type": "string"},
+                               "category": {"type": "string"}},
+                "required": ["query"]},
+        handler=lambda a: call_local("rag_search", a),
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
         name="chip_npi",
         description="Synopsys NPI C API 检索: 24 头文件/506 API (FSDB/覆盖率/UPF/VCS/NL/SDB/VerdiLearn); op=families 浏览族谱, op=search 关键词, op=get 精确签名",
         schema={"type": "object",
@@ -553,6 +828,130 @@ TOOL_DEFS: list[ToolDef] = [
                                "top_k": {"type": "integer"}},
                 "required": ["op"]},
         handler=_npi_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_uvm_search",
+        description="UVM 1.2 源码级正则检索 (221 类/2190 方法/458 宏/145 文件): 在真实 uvm_pkg 实现中定位符号/模式, 支持 file_filter/case_sensitive/上下文行数",
+        schema={"type": "object",
+                "properties": {"pattern": {"type": "string"},
+                               "file_filter": {"type": "string"},
+                               "case_sensitive": {"type": "boolean"},
+                               "context_lines": {"type": "integer"},
+                               "max_results": {"type": "integer"}},
+                "required": ["pattern"]},
+        handler=_uvm_search_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_uvm_class",
+        description="UVM 1.2 类完整源码 (如 uvm_driver/uvm_reg_block): 返回文件位置头 + 类体全文",
+        schema={"type": "object",
+                "properties": {"class_name": {"type": "string"}},
+                "required": ["class_name"]},
+        handler=_uvm_class_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_uvm_hierarchy",
+        description="UVM 1.2 类继承链: up=祖先链, down=直接子类, both=完整树",
+        schema={"type": "object",
+                "properties": {"class_name": {"type": "string"},
+                               "direction": {"type": "string",
+                                             "enum": ["up", "down", "both"]}},
+                "required": ["class_name"]},
+        handler=_uvm_hierarchy_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_uvm_methods",
+        description="列出 UVM 1.2 类全部 function/task 签名 (virtual/static 修饰); 用前先发现方法名, 再取源码",
+        schema={"type": "object",
+                "properties": {"class_name": {"type": "string"}},
+                "required": ["class_name"]},
+        handler=_uvm_methods_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_uvm_method_source",
+        description="UVM 1.2 指定方法的完整实现源码 (附文件/行号/注释头)",
+        schema={"type": "object",
+                "properties": {"class_name": {"type": "string"},
+                               "method_name": {"type": "string"}},
+                "required": ["class_name", "method_name"]},
+        handler=_uvm_method_source_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_uvm_classes",
+        description="浏览 UVM 1.2 全部类 (按子系统过滤, 如 reg/tlm/seq)",
+        schema={"type": "object",
+                "properties": {"filter": {"type": "string"}},
+                "required": []},
+        handler=_uvm_classes_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_uvm_file",
+        description="UVM 1.2 源码文件带行号阅读 (relative_path 如 base/uvm_object.svh)",
+        schema={"type": "object",
+                "properties": {"relative_path": {"type": "string"},
+                               "start_line": {"type": "integer"},
+                               "end_line": {"type": "integer"}},
+                "required": ["relative_path"]},
+        handler=_uvm_file_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_uvm_files",
+        description="UVM 1.2 源码文件树 (按子系统目录分组)",
+        schema={"type": "object",
+                "properties": {"directory_filter": {"type": "string"}},
+                "required": []},
+        handler=_uvm_files_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_uvm_macro",
+        description="UVM 宏定义查询 (如 `uvm_object_utils/`uvm_field_int/`uvm_do, 带上下文)",
+        schema={"type": "object",
+                "properties": {"macro_name": {"type": "string"}},
+                "required": ["macro_name"]},
+        handler=_uvm_macro_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_uvm_semantic",
+        description="UVM 1.2 语义检索 (哈希TF-IDF): 概念卡(2755 张蒸馏知识)+ 源码文档双路; 概念性问题优先用本工具",
+        schema={"type": "object",
+                "properties": {"query": {"type": "string"},
+                               "top_k": {"type": "integer"},
+                               "source_only": {"type": "boolean"}},
+                "required": ["query"]},
+        handler=_uvm_semantic_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_uvm_explain",
+        description="UVM 概念深度解析 (查询扩展: 源码 + 专家知识卡融合, 如 factory override/phase objection/config_db)",
+        schema={"type": "object",
+                "properties": {"concept": {"type": "string"}},
+                "required": ["concept"]},
+        handler=_uvm_explain_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_uvm_notes",
+        description="UVM 1.2 源码深度分析笔记检索 (210 篇分析文件→1834 结构化单元): 按 base/seq/reg/tlm/comps/macros/factory/phase/config 等 15 个子系统索引; kind=steps/example/flow/prose/section 过滤",
+        schema={"type": "object",
+                "properties": {"query": {"type": "string"},
+                               "subsystem": {"type": "string"},
+                               "kind": {"type": "string",
+                                        "enum": ["steps", "example", "flow",
+                                                 "prose", "section"]},
+                               "top_k": {"type": "integer"}},
+                "required": ["query"]},
+        handler=_uvm_notes_handler,
         is_error=lambda r: "error" in r, annotations=_AN_RO,
     ),
     ToolDef(
@@ -569,6 +968,141 @@ TOOL_DEFS: list[ToolDef] = [
         handler=_examples_handler,
         is_error=lambda r: "error" in r, annotations=_AN_RO,
     ),
+    ToolDef(
+        name="chip_manual_search",
+        description="技术手册全文检索 (VCS/Verdi/UVM/ChipStack 部署语料 + Synopsys/temp 合并语料, 235 册/427k 知识单元): 以章节/操作步骤/flow/示例为切分单元, 附 product/doc/kind/chapter/section 出处与原文片段",
+        schema={"type": "object",
+                "properties": {"query": {"type": "string"},
+                               "product": {"type": "string"},
+                               "doc": {"type": "string"},
+                               "kind": {"type": "string",
+                                        "enum": ["chapter", "section", "steps",
+                                                 "flow", "example", "prose"]},
+                               "top_k": {"type": "integer"}},
+                "required": ["query"]},
+        handler=lambda a: call_local("manual_search", a),
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_manual_ingest",
+        description="技术手册语料管线: op=scan 扫描候选, op=build 全量构建(提取→切分→SFT→向量索引), op=sft 仅生成语料, op=status 查看状态",
+        schema={"type": "object",
+                "properties": {"op": {"type": "string",
+                                      "enum": ["scan", "build", "sft", "status"]},
+                               "root": {"type": "string",
+                                        "description": "recursive PDF/HTML scan root "
+                                                       "(build/scan only)"},
+                               "out": {"type": "string",
+                                       "description": "corpus output root "
+                                                      "(build/sft/status only)"}},
+                "required": []},
+        handler=lambda a: call_local("manual_ingest_op", a),
+        is_error=lambda r: "error" in r,
+        annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_uvm_methodology",
+        description="UVM 1.2 方法学决策层: 组件模式(driver/monitor/agent/scoreboard/sequence/env/test/reg_model), phase 映射, TLM 连接, factory override, objection 生命周期, 验证清单; op=decide(query)/pattern(name)/phase_map/checklist(level)/pitfalls/patterns/full(query)",
+        schema={"type": "object",
+                "properties": {"op": {"type": "string",
+                                      "enum": ["decide", "pattern", "phase_map",
+                                               "checklist", "pitfalls", "patterns",
+                                               "full"]},
+                               "query": {"type": "string"},
+                               "pattern": {"type": "string",
+                                           "enum": ["driver", "monitor", "agent",
+                                                    "scoreboard", "sequence", "env",
+                                                    "test", "register_model",
+                                                    "factory_override",
+                                                    "objection_lifecycle",
+                                                    "tlm_connection"]},
+                               "level": {"type": "string",
+                                         "enum": ["block_level", "subsystem_level",
+                                                  "soc_level"]}},
+                "required": []},
+        handler=_uvm_methodology_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_rag_search",
+        description="跨语料联邦 RAG 检索: 并行 fan-out 至 UG 手册/技术手册合并语料/DVCon 论文/UVM 方法学/UVM 语义概念卡/UVM 1.2 分析笔记(1834 单元)/NPI API, 单次查询返回统一溯源 schema (corpus/score/doc/kind/text), 单源故障或超时自动降级不影响其余源",
+        schema={"type": "object",
+                "properties": {"query": {"type": "string"},
+                               "backends": {"type": "array",
+                                             "items": {"type": "string",
+                                                       "enum": ["manual_search",
+                                                                "uvm_methodology",
+                                                                "uvm_semantic",
+                                                                "uvm_notes",
+                                                                "ug_index",
+                                                                "dvcon_index",
+                                                                "npi_index"]}},
+                               "kind": {"type": "string"},
+                               "product": {"type": "string"},
+                               "top_k": {"type": "integer"}},
+                "required": ["query"]},
+        handler=_rag_search_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_rag_status",
+        description="RAG 后端健康检查: 各索引可用性 + 测试命中数 + 可用工作流链",
+        schema={"type": "object", "properties": {}, "required": []},
+        handler=_rag_status_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_scheduler_status",
+        description="调度器健康检查: 缓存命中率/熔断器状态/预热线程/依赖图/并行安全组",
+        schema={"type": "object", "properties": {}, "required": []},
+        handler=_scheduler_status_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_scheduler_preload",
+        description="预热重索引: 后台预加载 UG/技术手册/UVM 语义向量索引, 消除首次查询冷启动延迟",
+        schema={"type": "object",
+                "properties": {"background": {"type": "boolean", "default": True}},
+                "required": []},
+        handler=_scheduler_preload_handler,
+        is_error=lambda r: "error" in r,
+    ),
+    ToolDef(
+        name="chip_scheduler_cache_clear",
+        description="清除调度器结果缓存",
+        schema={"type": "object", "properties": {}, "required": []},
+        handler=_scheduler_cache_clear_handler,
+    ),
+    ToolDef(
+        name="chip_post_rtl_methodology",
+        description="RTL 仿真后 7 层验证方法学决策: LEC/GL-sim/SDC/STA/复位-CDC-UPF-Xprop/ECO等价/PPA回归. op=decide(query)/stage(name)/workflow/convergence(measurements)/pitfalls/stages/tool_chain/full(query)",
+        schema={"type": "object",
+                "properties": {"op": {"type": "string",
+                                      "enum": ["decide", "stage", "workflow",
+                                               "convergence", "pitfalls",
+                                               "stages", "tool_chain", "full"]},
+                               "query": {"type": "string"},
+                               "stage": {"type": "string"},
+                               "measurements": {"type": "object"}},
+                "required": []},
+        handler=_post_rtl_methodology_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
+    ToolDef(
+        name="chip_eda_route",
+        description="EDA 工具路由验证: 意图→工具→命令模板 (compile/simv→VCS, fsdb→Verdi, CDC/lint→SpyGlass, SDC→PrimeTime, LEC→Formality). op=match(query)/validate(tool,command)/availability(tool)/routes/pitfalls(tool)",
+        schema={"type": "object",
+                "properties": {"op": {"type": "string",
+                                      "enum": ["match", "validate", "availability",
+                                               "routes", "pitfalls"]},
+                               "query": {"type": "string"},
+                               "tool": {"type": "string"},
+                               "command": {"type": "array",
+                                            "items": {"type": "string"}}},
+                "required": []},
+        handler=_eda_route_handler,
+        is_error=lambda r: "error" in r, annotations=_AN_RO,
+    ),
 ]
 
 _DEF_BY_NAME = {d.name: d for d in TOOL_DEFS}
@@ -578,6 +1112,18 @@ _DEF_BY_NAME = {d.name: d for d in TOOL_DEFS}
 # exposes it (legacy: "domain" key, SDK: "[domain: x]" description suffix —
 # SDK ToolAnnotations is a strict pydantic model with no extension room).
 _TOOL_DOMAINS = {
+    "chip_uvm_search": "verification",
+    "chip_uvm_class": "verification",
+    "chip_uvm_hierarchy": "verification",
+    "chip_uvm_methods": "verification",
+    "chip_uvm_method_source": "verification",
+    "chip_uvm_classes": "verification",
+    "chip_uvm_file": "verification",
+    "chip_uvm_files": "verification",
+    "chip_uvm_macro": "verification",
+    "chip_uvm_semantic": "verification",
+    "chip_uvm_explain": "verification",
+    "chip_uvm_notes": "verification",
     "chip_agent_plan": "orchestration",
     "chip_agent_run": "orchestration",
     "chip_generate_testbench": "verification",
@@ -602,6 +1148,18 @@ _TOOL_DOMAINS = {
     "chip_dvcon_search": "index",
     "chip_npi": "index",
     "chip_examples": "index",
+    "chip_manual_search": "index",
+    "chip_manual_ingest": "index",
+    "chip_rag_search": "index",
+    "chip_uvm_methodology": "verification",
+    "chip_rag_search": "index",
+    "chip_rag_status": "index",
+    "chip_scheduler_status": "meta",
+    "chip_scheduler_preload": "meta",
+    "chip_scheduler_cache_clear": "meta",
+    "chip_post_rtl_methodology": "design",
+    "chip_eda_route": "eda",
+    "chip_dv_infrastructure": "verification",
 }
 for _d in TOOL_DEFS:
     _d.domain = _TOOL_DOMAINS.get(_d.name, "general")

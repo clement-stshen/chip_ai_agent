@@ -52,6 +52,55 @@ _DECL_RE = re.compile(
 # 24 headers / ~5k lines re-scanned per call otherwise (~12ms each).
 _API_CACHE: dict[str, list[dict]] = {}
 
+# Transformed corpus path (query-time reads ONLY from this file, never .h sources)
+CORPUS_PATH = Path(__file__).parent / "corpus" / "npi" / "npi_corpus.json"
+
+
+def _load_corpus() -> list[dict] | None:
+    """Load pre-built NPI corpus (JSON) — no source .h reads at query time."""
+    if CORPUS_PATH.exists():
+        try:
+            return json.loads(CORPUS_PATH.read_text(encoding="utf-8"))
+        except Exception:
+            return None
+    return None
+
+
+def build_corpus(out: Path | None = None) -> dict:
+    """One-time build: parse .h files → JSON corpus. Call at build/deploy time."""
+    out = out or CORPUS_PATH
+    inc = _inc_dir()
+    if not inc.is_dir():
+        return {"error": f"NPI include dir not found: {inc}"}
+    out.parent.mkdir(parents=True, exist_ok=True)
+    api = _parse_api_from_source(inc)
+    # Also cache header file list (avoids glob at query time)
+    headers = sorted(h.name for h in inc.glob("*.h"))
+    out.write_text(json.dumps({
+        "api": api, "headers": headers, "inc": str(inc),
+        "built_at": __import__("time").time(),
+    }, ensure_ascii=False), encoding="utf-8")
+    return {"apis": len(api), "headers": len(headers), "corpus": str(out)}
+
+
+def _parse_api_from_source(inc: Path) -> list[dict]:
+    """Parse .h files (build time only)."""
+    out: dict[str, dict] = {}
+    for h in sorted(inc.glob("*.h")):
+        text = h.read_text(errors="replace")
+        family = _family_of(h.name)
+        for m in _DECL_RE.finditer(text):
+            name = m.group(1)
+            if name in out:
+                continue
+            decl = " ".join(m.group(0).split())
+            line = text.count("\n", 0, m.start()) + 1
+            out[name] = {
+                "name": name, "family": family, "header": h.name,
+                "decl": decl[:400], "line": line,
+            }
+    return sorted(out.values(), key=lambda a: (a["family"], a["name"]))
+
 
 def _inc_dir() -> Path:
     return Path(os.environ.get("CHIP_AGENT_NPI_INC", NPI_INC_DEFAULT))
@@ -71,41 +120,44 @@ def _family_of(header: str) -> str:
 
 
 def _parse_api(inc: Path) -> list[dict]:
-    """扫描头文件, 返回 {name, family, header, decl, line} 列表 (去重)."""
+    """Load API index from transformed corpus (query time: NO .h source reads).
+
+    Falls back to one-time build from source if corpus file is missing.
+    """
     key = str(inc)
     cached = _API_CACHE.get(key)
-    if cached is not None and inc.is_dir():
+    if cached is not None:
         return cached
-    out: dict[str, dict] = {}
-    for h in sorted(inc.glob("*.h")):
-        text = h.read_text(errors="replace")
-        family = _family_of(h.name)
-        for m in _DECL_RE.finditer(text):
-            name = m.group(1)
-            if name in out:
-                continue
-            decl = " ".join(m.group(0).split())
-            line = text.count("\n", 0, m.start()) + 1
-            out[name] = {
-                "name": name, "family": family, "header": h.name,
-                "decl": decl[:400], "line": line,
-            }
-    api = sorted(out.values(), key=lambda a: (a["family"], a["name"]))
+
+    # 1. Try pre-built corpus
+    corpus = _load_corpus()
+    if corpus and isinstance(corpus.get("api"), list):
+        api = corpus["api"]
+        _API_CACHE[key] = api
+        return api
+
+    # 2. One-time build from source (build time, not steady-state query)
+    api = _parse_api_from_source(inc)
+    try:
+        build_corpus()
+    except Exception:
+        pass  # best-effort: still cache in memory even if disk write fails
     _API_CACHE[key] = api
     return api
 
 
 def families() -> dict:
     inc = _inc_dir()
-    if not inc.is_dir():
-        return {"error": f"NPI include dir not found: {inc}"}
     api = _parse_api(inc)
     by_fam: dict[str, int] = {}
     for a in api:
         by_fam[a["family"]] = by_fam.get(a["family"], 0) + 1
+    # Get header count from corpus (avoid .h glob at query time)
+    corpus = _load_corpus()
+    n_headers = len(corpus.get("headers", [])) if corpus else len(by_fam)
     return {
         "inc": str(inc),
-        "headers": len(list(inc.glob('*.h'))),
+        "headers": n_headers,
         "apis": len(api),
         "families": dict(sorted(by_fam.items(),
                                 key=lambda kv: -kv[1])),
@@ -123,8 +175,7 @@ def families() -> dict:
 
 def search(keyword: str, family: str | None = None, top_k: int = 20) -> dict:
     inc = _inc_dir()
-    if not inc.is_dir():
-        return {"error": f"NPI include dir not found: {inc}"}
+    api = _parse_api(inc)
     kw = keyword.lower()
     hits = [a for a in _parse_api(inc)
             if (kw in a["name"].lower() or kw in a["decl"].lower())
@@ -135,8 +186,6 @@ def search(keyword: str, family: str | None = None, top_k: int = 20) -> dict:
 
 def get(name: str) -> dict:
     inc = _inc_dir()
-    if not inc.is_dir():
-        return {"error": f"NPI include dir not found: {inc}"}
     for a in _parse_api(inc):
         if a["name"] == name:
             return a

@@ -330,13 +330,38 @@ def analyze_text(text: str, kind: str | None = None, source: str = "<text>") -> 
     if verdict == "PASS":
         cls = "none"
     rec = _recommend(parsed, kind)
-    return {
+    result = {
         "ok": True, "source": source, "kind": kind, "verdict": verdict,
         "issues": parsed["issues"][:50], "counts": {**counts, "issue_count": len(parsed["issues"])},
         "failure_class": cls,
         "retry_strategy": retry_strategy_for(cls),
         "recommended": rec,
     }
+    # Architecture-level enrichment: cross-reference UVM methodology and manuals
+    try:
+        from . import uvm_methodology as um
+        if cls and cls != "none" and cls != "unknown":
+            m = um.decide(cls.replace("_", " ") + " " + text[:200])
+            if m.get("matched"):
+                result["uvm_methodology"] = {
+                    "best_pattern": m["best_pattern"],
+                    "rationale": m.get("best_rationale", ""),
+                    "pitfalls": m.get("best_data", {}).get("pitfalls", []),
+                }
+    except Exception:
+        pass
+    try:
+        from . import rag_router
+        rag = rag_router.rag_search(cls.replace("_", " ") if cls else text[:100], top_k=3)
+        if rag.get("hits"):
+            result["rag_steps"] = [
+                {"source": h["source"], "kind": h["kind"], "doc": h["doc"],
+                 "text": h["text"][:300]}
+                for h in rag.get("hits", [])[:3]
+            ]
+    except Exception:
+        pass
+    return result
 
 
 # ------------------------------------------------- manual step lookup (UG)

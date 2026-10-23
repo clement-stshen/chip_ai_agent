@@ -1,0 +1,20 @@
+{
+  "format": "jsonl-shards-v1",
+  "stem": "sft",
+  "max_target_bytes": 47185920,
+  "files": [
+    "sft_00000.jsonl",
+    "sft_00001.jsonl",
+    "sft_00002.jsonl",
+    "sft_00003.jsonl"
+  ],
+  "sizes": [
+    47185855,
+    47185815,
+    47185901,
+    16976153
+  ],
+  "total_bytes": 158533724,
+  "records": 254687,
+  "created_unix": 1792552664.5001018
+}
